@@ -17,6 +17,14 @@ class LandlordWelcomeController extends Controller
         $isLandlordWorkspace = $user?->role === 'landlord';
 
         return Inertia::render('welcome/tenant', [
+            'auth' => [
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                ] : null,
+            ],
             'canRegister' => Features::enabled(Features::registration()),
             'isLandlordWorkspace' => $isLandlordWorkspace,
             'showCreateListing' => $isLandlordWorkspace && $request->boolean('create'),
@@ -29,7 +37,7 @@ class LandlordWelcomeController extends Controller
                     ->with(['city', 'images'])
                     ->latest()
                     ->get()
-                    ->map(fn (Room $room): array => [
+                    ->map(fn(Room $room): array => [
                         'id' => $room->id,
                         'status' => $room->status,
                         'title' => $room->title,

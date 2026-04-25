@@ -17,13 +17,13 @@ Route::inertia('/', 'welcome', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
 
-Route::get('/welcome/tenant', function () {
+Route::get('/welcome/tenant', function (Request $request) {
     $rooms = Room::query()
         ->with('city:id,name')
         ->latest('id')
         ->take(6)
         ->get()
-        ->map(fn (Room $room): array => [
+        ->map(fn(Room $room): array => [
             'id' => $room->id,
             'title' => $room->title,
             'city' => (string) $room->city?->name,
@@ -33,7 +33,17 @@ Route::get('/welcome/tenant', function () {
         ])
         ->all();
 
+    $user = $request->user();
+
     return Inertia::render('welcome/seeker', [
+        'auth' => [
+            'user' => $user ? [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ] : null,
+        ],
         'canRegister' => Features::enabled(Features::registration()),
         'featuredRooms' => $rooms,
     ]);
@@ -127,4 +137,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('landlord.listings.update');
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

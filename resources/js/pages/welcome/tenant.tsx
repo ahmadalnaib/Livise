@@ -1,6 +1,6 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useEffectEvent, useId, useRef, useState } from 'react';
-import { ArrowRight, Building2, CheckCircle2, ImagePlus, UploadCloud, X } from 'lucide-react';
+import { ArrowRight, BadgeDollarSign, Building2, CalendarCheck2, CheckCircle2, ImagePlus, UploadCloud, Users, X } from 'lucide-react';
 import { store } from '@/actions/App/Http/Controllers/LandlordListingController';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -280,10 +280,10 @@ function GuestTenantWelcome({
                                 </p>
                             </div>
                             <Link
-                                href={canRegister && !auth.user ? register({ query: { role: 'landlord' } }) : primaryHref}
+                                href={canRegister && !authUser ? register({ query: { role: 'landlord' } }) : primaryHref}
                                 className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-stone-900 transition hover:-translate-y-0.5 dark:bg-stone-900 dark:text-white"
                             >
-                                {canRegister && !auth.user ? 'Create landlord account' : primaryLabel}
+                                {canRegister && !authUser ? 'Create landlord account' : primaryLabel}
                                 <ArrowRight className="size-4" />
                             </Link>
                         </div>
@@ -588,10 +588,10 @@ function TenantWorkspace({
                                                             </p>
                                                         </div>
                                                         <span className="rounded-full bg-stone-900 px-3 py-1 text-xs font-semibold text-white dark:bg-white dark:text-stone-900">
-                                                        {listing.image_count} photo{listing.image_count === 1 ? '' : 's'}
-                                                    </span>
-                                                </div>
-                                                <div className="mt-4 flex flex-wrap gap-2 text-xs font-medium text-stone-600 dark:text-stone-300">
+                                                            {listing.image_count} photo{listing.image_count === 1 ? '' : 's'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="mt-4 flex flex-wrap gap-2 text-xs font-medium text-stone-600 dark:text-stone-300">
                                                         {listing.price_per_night ? (
                                                             <span className="rounded-full bg-white px-3 py-1 dark:bg-white/10">
                                                                 €{listing.price_per_night}/{listing.price_period === 'month' ? 'month' : 'night'}
