@@ -1,6 +1,23 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { CalendarDays, ChevronLeft, MapPinned, ShieldCheck, UserRound } from 'lucide-react';
+import { CalendarDays, ChevronLeft, Home, MapPin, MapPinned, Ruler, ShieldCheck, Wifi } from 'lucide-react';
 import dashboardRoutes from '@/routes/dashboard';
+
+const facilityLabels: Record<string, string> = {
+    wifi: 'WiFi',
+    kitchen: 'Kitchen',
+    air_conditioning: 'Air Conditioning',
+    heating: 'Heating',
+    parking: 'Parking',
+    washing_machine: 'Washing Machine',
+    dishwasher: 'Dishwasher',
+    lift: 'Elevator',
+    private_bathroom: 'Private Bathroom',
+    furnished: 'Furnished',
+    balcony: 'Balcony',
+    tv: 'TV',
+    pets_allowed: 'Pets Allowed',
+    smoke_alarm: 'Smoke Alarm',
+};
 
 type BookedRange = {
     id: number;
@@ -24,8 +41,15 @@ type RoomDetails = {
     title: string;
     description: string;
     city: string;
+    addressLine1: string;
+    addressLine2: string;
+    postalCode: string;
+    sizeLabel: string;
+    listingType: string;
+    facilities: string[];
     ownerName: string;
     pricePerNight: string;
+    pricePeriod: string;
     image: string;
     tags: string[];
 };
@@ -98,12 +122,17 @@ export default function SeekerRoomShow() {
                                         {room.city}
                                     </span>
                                     <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1.5">
-                                        <UserRound className="size-4" />
-                                        {room.ownerName}
+                                        <Home className="size-4" />
+                                        {room.listingType === 'apartment' ? 'Apartment' : 'Room'}
+                                    </span>
+                                    <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1.5">
+                                        <Ruler className="size-4" />
+                                        {room.sizeLabel || 'Size N/A'}
                                     </span>
                                     <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1.5">
                                         <CalendarDays className="size-4" />
-                                        {room.pricePerNight} / night
+                                        {room.pricePerNight}
+                                        {room.pricePeriod === 'month' ? '/mo' : '/night'}
                                     </span>
                                 </div>
                             </div>
@@ -122,6 +151,75 @@ export default function SeekerRoomShow() {
                                             {tag}
                                         </span>
                                     ))}
+                                </div>
+
+                                {/* Room Details Section */}
+                                <div className="mt-8 rounded-2xl border border-sidebar-border/70 p-5 dark:border-sidebar-border">
+                                    <h3 className="text-lg font-semibold">Room Details</h3>
+
+                                    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                                        {/* Location */}
+                                        <div className="flex items-start gap-3">
+                                            <MapPin className="mt-0.5 size-5 text-primary" />
+                                            <div>
+                                                <p className="text-sm font-medium">Location</p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    {room.addressLine1}
+                                                    {room.addressLine2 ? <>, {room.addressLine2}</> : null}
+                                                    {room.postalCode ? <>, {room.postalCode}</> : null}
+                                                    {room.city ? <>, {room.city}</> : null}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Size */}
+                                        <div className="flex items-start gap-3">
+                                            <Ruler className="mt-0.5 size-5 text-primary" />
+                                            <div>
+                                                <p className="text-sm font-medium">Size</p>
+                                                <p className="text-sm text-muted-foreground">{room.sizeLabel || 'Not specified'}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Listing Type */}
+                                        <div className="flex items-start gap-3">
+                                            <Home className="mt-0.5 size-5 text-primary" />
+                                            <div>
+                                                <p className="text-sm font-medium">Type</p>
+                                                <p className="text-sm text-muted-foreground capitalize">{room.listingType || 'Room'}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Price */}
+                                        <div className="flex items-start gap-3">
+                                            <CalendarDays className="mt-0.5 size-5 text-primary" />
+                                            <div>
+                                                <p className="text-sm font-medium">Price</p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    {room.pricePerNight}
+                                                    {room.pricePeriod === 'month' ? '/month' : '/night'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Facilities */}
+                                    {room.facilities && room.facilities.length > 0 && (
+                                        <div className="mt-5 border-t border-sidebar-border/70 pt-5 dark:border-sidebar-border">
+                                            <p className="text-sm font-medium">Facilities</p>
+                                            <div className="mt-3 flex flex-wrap gap-2">
+                                                {room.facilities.map((facility) => (
+                                                    <span
+                                                        key={facility}
+                                                        className="inline-flex items-center gap-1.5 rounded-full bg-primary/8 px-3 py-1.5 text-xs font-medium text-primary"
+                                                    >
+                                                        <Wifi className="size-3" />
+                                                        {facilityLabels[facility] || facility}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {currentUserRental ? (
