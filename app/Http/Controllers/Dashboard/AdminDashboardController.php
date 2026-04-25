@@ -23,7 +23,7 @@ class AdminDashboardController extends Controller
             ])
             ->latest('id')
             ->get()
-            ->map(fn (BookingRequest $bookingRequest): array => [
+            ->map(fn(BookingRequest $bookingRequest): array => [
                 'id' => $bookingRequest->id,
                 'status' => $bookingRequest->status,
                 'startsAt' => $bookingRequest->starts_at->toDateString(),
@@ -57,7 +57,7 @@ class AdminDashboardController extends Controller
             ->whereNull('tenant_approved_at')
             ->latest('id')
             ->get(['id', 'name', 'email', 'created_at'])
-            ->map(fn (User $user): array => [
+            ->map(fn(User $user): array => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
@@ -83,7 +83,7 @@ class AdminDashboardController extends Controller
         $users = User::query()
             ->latest('id')
             ->get(['id', 'name', 'email', 'role', 'tenant_approved_at', 'created_at'])
-            ->map(fn (User $user): array => [
+            ->map(fn(User $user): array => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
@@ -105,7 +105,7 @@ class AdminDashboardController extends Controller
             ->withCount('rentals')
             ->latest('id')
             ->get()
-            ->map(fn (Room $room): array => [
+            ->map(fn(Room $room): array => [
                 'id' => $room->id,
                 'title' => $room->title,
                 'city' => (string) $room->city?->name,
@@ -150,8 +150,8 @@ class AdminDashboardController extends Controller
         $room->load([
             'city:id,name',
             'owner:id,name,email',
-            'rentals' => fn ($query) => $query->with('renter:id,name,email')->latest('id'),
-            'bookingRequests' => fn ($query) => $query->with('renter:id,name,email')->latest('id'),
+            'rentals' => fn($query) => $query->with('renter:id,name,email')->latest('id'),
+            'bookingRequests' => fn($query) => $query->with('renter:id,name,email')->latest('id'),
         ]);
 
         return Inertia::render('dashboard/admin-room-show', [
@@ -169,7 +169,7 @@ class AdminDashboardController extends Controller
                 'status' => $room->rentals->isNotEmpty() ? 'rented' : 'available',
             ],
             'rentals' => $room->rentals
-                ->map(fn (Rental $rental): array => [
+                ->map(fn(Rental $rental): array => [
                     'id' => $rental->id,
                     'renterId' => $rental->renter?->id,
                     'renterName' => (string) $rental->renter?->name,
@@ -179,7 +179,7 @@ class AdminDashboardController extends Controller
                 ])
                 ->all(),
             'bookingRequests' => $room->bookingRequests
-                ->map(fn (BookingRequest $bookingRequest): array => [
+                ->map(fn(BookingRequest $bookingRequest): array => [
                     'id' => $bookingRequest->id,
                     'status' => $bookingRequest->status,
                     'tenantId' => $bookingRequest->renter?->id,
