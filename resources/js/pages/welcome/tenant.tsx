@@ -100,3 +100,5 @@ export default function TenantWelcome({ canRegister = true }: TenantProps) {
         </>
     );
 }
+
+TenantWelcome.layout = null;

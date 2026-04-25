@@ -116,3 +116,5 @@ export default function SeekerWelcome({ canRegister = true }: SeekerProps) {
         </>
     );
 }
+
+SeekerWelcome.layout = null;
