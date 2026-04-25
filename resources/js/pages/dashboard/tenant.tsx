@@ -81,19 +81,19 @@ export default function TenantDashboard({ activeFilter, stats, listings, ratings
         activeFilter === 'pending'
             ? 'Pending listings'
             : activeFilter === 'confirmed'
-              ? 'Confirmed listings'
-              : activeFilter === 'requests'
-                ? 'Tenant requests'
-                : 'Created listings';
+                ? 'Confirmed listings'
+                : activeFilter === 'requests'
+                    ? 'Tenant requests'
+                    : 'Created listings';
 
     const listingsDescription =
         activeFilter === 'pending'
             ? 'Listings waiting for admin verification.'
             : activeFilter === 'confirmed'
-              ? 'Listings already verified by admin.'
-              : activeFilter === 'requests'
-                ? 'Review incoming tenant interest and booking activity here.'
-                : 'Open any saved listing to review the details and edit it.';
+                ? 'Listings already verified by admin.'
+                : activeFilter === 'requests'
+                    ? 'Review incoming tenant interest and booking activity here.'
+                    : 'Open any saved listing to review the details and edit it.';
 
     return (
         <>
@@ -123,11 +123,10 @@ export default function TenantDashboard({ activeFilter, stats, listings, ratings
                                             className="p-1"
                                         >
                                             <Star
-                                                className={`size-8 ${
-                                                    star <= ratingForm.data.rating
+                                                className={`size-8 ${star <= ratingForm.data.rating
                                                         ? 'fill-yellow-400 text-yellow-400'
                                                         : 'text-stone-300'
-                                                }`}
+                                                    }`}
                                             />
                                         </button>
                                     ))}
@@ -181,9 +180,8 @@ export default function TenantDashboard({ activeFilter, stats, listings, ratings
                                                 {[1, 2, 3, 4, 5].map((star) => (
                                                     <Star
                                                         key={star}
-                                                        className={`size-4 ${
-                                                            star <= rating.rating ? 'fill-yellow-400 text-yellow-400' : 'text-stone-300'
-                                                        }`}
+                                                        className={`size-4 ${star <= rating.rating ? 'fill-yellow-400 text-yellow-400' : 'text-stone-300'
+                                                            }`}
                                                     />
                                                 ))}
                                             </div>
@@ -242,11 +240,10 @@ export default function TenantDashboard({ activeFilter, stats, listings, ratings
                                     key={tenant.id}
                                     onClick={() => !tenant.already_rated && handleOpenRatingModal(tenant)}
                                     disabled={tenant.already_rated}
-                                    className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm ${
-                                        tenant.already_rated
+                                    className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm ${tenant.already_rated
                                             ? 'bg-stone-100 text-stone-400 dark:bg-stone-800 dark:text-stone-500'
                                             : 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
-                                    }`}
+                                        }`}
                                 >
                                     <Star className="size-4" />
                                     {tenant.name}
@@ -271,10 +268,10 @@ export default function TenantDashboard({ activeFilter, stats, listings, ratings
                                 {activeFilter === 'pending'
                                     ? 'No pending listings right now.'
                                     : activeFilter === 'confirmed'
-                                      ? 'No confirmed listings yet.'
-                                      : activeFilter === 'requests'
-                                        ? 'No tenant requests yet.'
-                                        : 'No listings created yet. Start your first listing from the sidebar.'}
+                                        ? 'No confirmed listings yet.'
+                                        : activeFilter === 'requests'
+                                            ? 'No tenant requests yet.'
+                                            : 'No listings created yet. Start your first listing from the sidebar.'}
                             </div>
                         ) : (
                             listings.map((listing) => (
@@ -286,11 +283,10 @@ export default function TenantDashboard({ activeFilter, stats, listings, ratings
                                                     {listing.listing_type === 'apartment' ? 'Apartment' : 'Room'}
                                                 </p>
                                                 <span
-                                                    className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${
-                                                        listing.status === 'confirmed'
+                                                    className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${listing.status === 'confirmed'
                                                             ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
                                                             : 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {listing.status === 'confirmed' ? 'Confirmed' : 'Pending'}
                                                 </span>

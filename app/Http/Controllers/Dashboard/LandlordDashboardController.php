@@ -33,7 +33,7 @@ class LandlordDashboardController extends Controller
             ->latest()
             ->take(10)
             ->get()
-            ->map(fn (Rating $rating): array => [
+            ->map(fn(Rating $rating): array => [
                 'id' => $rating->id,
                 'rater_name' => $rating->rater->name,
                 'rating' => $rating->rating,
@@ -48,13 +48,13 @@ class LandlordDashboardController extends Controller
             ->pluck('rated_id')
             ->toArray();
 
-        $recentTenants = Rental::whereHas('room', fn ($query) => $query->where('owner_id', $landlord->id))
+        $recentTenants = Rental::whereHas('room', fn($query) => $query->where('owner_id', $landlord->id))
             ->with('renter')
             ->latest()
             ->take(10)
             ->get()
             ->unique('renter_id')
-            ->map(fn ($rental): array => [
+            ->map(fn($rental): array => [
                 'id' => $rental->renter->id,
                 'name' => $rental->renter->name,
                 'already_rated' => in_array($rental->renter->id, $tenantsRated),
@@ -68,14 +68,14 @@ class LandlordDashboardController extends Controller
                 'publishedRooms' => $allListings->count(),
                 'pendingListings' => $allListings->where('status', 'pending')->count(),
                 'confirmedListings' => $allListings->where('status', 'confirmed')->count(),
-                'estimatedRevenue' => $allListings->sum(fn (Room $room): float => (float) $room->price_per_night),
-                'withPhotos' => $allListings->filter(fn (Room $room): bool => $room->images->isNotEmpty())->count(),
+                'estimatedRevenue' => $allListings->sum(fn(Room $room): float => (float) $room->price_per_night),
+                'withPhotos' => $allListings->filter(fn(Room $room): bool => $room->images->isNotEmpty())->count(),
                 'averageRating' => round($landlord->averageRating(), 1),
                 'totalRatings' => $landlord->ratingsReceived()->count(),
             ],
             'ratingsReceived' => $ratingsReceived,
             'recentTenants' => $recentTenants,
-            'listings' => $listings->map(fn (Room $room): array => [
+            'listings' => $listings->map(fn(Room $room): array => [
                 'id' => $room->id,
                 'status' => $room->status,
                 'title' => $room->title,
