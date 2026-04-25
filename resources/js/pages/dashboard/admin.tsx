@@ -1,10 +1,9 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ShieldCheck, Users, Building2, ChartNoAxesCombined } from 'lucide-react';
+import { Building2, ChartNoAxesCombined, ShieldCheck, Users } from 'lucide-react';
 import { admin } from '@/routes/dashboard';
 import { approve } from '@/routes/dashboard/admin/bookings';
-import { list as roomsList } from '@/routes/dashboard/admin/rooms';
-import { approve as approveTenant } from '@/routes/dashboard/admin/users';
-import { list as usersList } from '@/routes/dashboard/admin/users';
+import { list as roomsList, show as roomShow } from '@/routes/dashboard/admin/rooms';
+import { approve as approveTenant, list as usersList, show as userShow } from '@/routes/dashboard/admin/users';
 
 type BookingRequest = {
     id: number;
@@ -43,28 +42,11 @@ type PageProps = {
         email: string;
         createdAt: string | null;
     }>;
-    allUsers: Array<{
-        id: number;
-        name: string;
-        email: string;
-        role: string;
-        tenantApproved: boolean;
-        createdAt: string | null;
-    }>;
-    allRooms: Array<{
-        id: number;
-        title: string;
-        city: string;
-        landlordName: string;
-        landlordEmail: string;
-        rentalsCount: number;
-        status: string;
-    }>;
     bookingRequests: BookingRequest[];
 };
 
 export default function AdminDashboard() {
-    const { stats, allUsers, allRooms, pendingTenantUsers, bookingRequests } = usePage<PageProps>().props;
+    const { stats, pendingTenantUsers, bookingRequests } = usePage<PageProps>().props;
 
     return (
         <>
@@ -111,71 +93,6 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="rounded-xl border border-sidebar-border/70 bg-white p-6 dark:border-sidebar-border dark:bg-sidebar">
-                    <h2 className="text-lg font-semibold">All Users</h2>
-                    <p className="mt-2 text-sm text-muted-foreground">Full users list with account role and tenant approval status.</p>
-
-                    <div className="mt-5 overflow-x-auto">
-                        <table className="w-full min-w-[760px] table-auto border-collapse text-left">
-                            <thead>
-                                <tr className="border-b border-sidebar-border/70 text-xs uppercase tracking-wide text-muted-foreground dark:border-sidebar-border">
-                                    <th className="px-3 py-3">Name</th>
-                                    <th className="px-3 py-3">Email</th>
-                                    <th className="px-3 py-3">Role</th>
-                                    <th className="px-3 py-3">Tenant approval</th>
-                                    <th className="px-3 py-3">Created at</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {allUsers.map((user) => (
-                                    <tr key={user.id} className="border-b border-sidebar-border/60 text-sm dark:border-sidebar-border/70">
-                                        <td className="px-3 py-3 font-medium">{user.name}</td>
-                                        <td className="px-3 py-3 text-muted-foreground">{user.email}</td>
-                                        <td className="px-3 py-3 capitalize">{user.role}</td>
-                                        <td className="px-3 py-3 text-xs">
-                                            {user.role === 'tenant' ? (user.tenantApproved ? 'Approved' : 'Pending') : 'N/A'}
-                                        </td>
-                                        <td className="px-3 py-3 text-xs text-muted-foreground">{user.createdAt ?? 'N/A'}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div className="rounded-xl border border-sidebar-border/70 bg-white p-6 dark:border-sidebar-border dark:bg-sidebar">
-                    <h2 className="text-lg font-semibold">All Rooms</h2>
-                    <p className="mt-2 text-sm text-muted-foreground">Full room list with landlord and rental status.</p>
-
-                    <div className="mt-5 overflow-x-auto">
-                        <table className="w-full min-w-[760px] table-auto border-collapse text-left">
-                            <thead>
-                                <tr className="border-b border-sidebar-border/70 text-xs uppercase tracking-wide text-muted-foreground dark:border-sidebar-border">
-                                    <th className="px-3 py-3">Room</th>
-                                    <th className="px-3 py-3">City</th>
-                                    <th className="px-3 py-3">Landlord</th>
-                                    <th className="px-3 py-3">Rentals</th>
-                                    <th className="px-3 py-3">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {allRooms.map((room) => (
-                                    <tr key={room.id} className="border-b border-sidebar-border/60 text-sm dark:border-sidebar-border/70">
-                                        <td className="px-3 py-3 font-medium">{room.title}</td>
-                                        <td className="px-3 py-3 text-muted-foreground">{room.city}</td>
-                                        <td className="px-3 py-3">
-                                            <p>{room.landlordName}</p>
-                                            <p className="text-xs text-muted-foreground">{room.landlordEmail}</p>
-                                        </td>
-                                        <td className="px-3 py-3">{room.rentalsCount}</td>
-                                        <td className="px-3 py-3 capitalize">{room.status}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div className="rounded-xl border border-sidebar-border/70 bg-white p-6 dark:border-sidebar-border dark:bg-sidebar">
                     <h2 className="text-lg font-semibold">Tenant Registration Approvals</h2>
                     <p className="mt-2 text-sm text-muted-foreground">New tenant users can browse rooms but cannot book until approved here.</p>
 
@@ -193,7 +110,11 @@ export default function AdminDashboard() {
                                 <tbody>
                                     {pendingTenantUsers.map((tenantUser) => (
                                         <tr key={tenantUser.id} className="border-b border-sidebar-border/60 text-sm dark:border-sidebar-border/70">
-                                            <td className="px-3 py-3 font-medium">{tenantUser.name}</td>
+                                            <td className="px-3 py-3 font-medium">
+                                                <Link href={userShow(tenantUser.id)} className="text-primary hover:underline">
+                                                    {tenantUser.name}
+                                                </Link>
+                                            </td>
                                             <td className="px-3 py-3 text-muted-foreground">{tenantUser.email}</td>
                                             <td className="px-3 py-3 text-xs text-muted-foreground">{tenantUser.createdAt ?? 'N/A'}</td>
                                             <td className="px-3 py-3 text-right">
@@ -218,7 +139,7 @@ export default function AdminDashboard() {
 
                 <div className="rounded-xl border border-sidebar-border/70 bg-white p-6 dark:border-sidebar-border dark:bg-sidebar">
                     <h2 className="text-lg font-semibold">All Booking Requests</h2>
-                    <p className="mt-2 text-sm text-muted-foreground">Approve tenant booking requests and notify landlords with approved booking details.</p>
+                    <p className="mt-2 text-sm text-muted-foreground">Approve tenant booking requests and review tenant, landlord, and room profiles before approving.</p>
 
                     <div className="mt-5 overflow-x-auto">
                         <table className="w-full min-w-[760px] table-auto border-collapse text-left">
@@ -236,15 +157,21 @@ export default function AdminDashboard() {
                                 {bookingRequests.map((request) => (
                                     <tr key={request.id} className="border-b border-sidebar-border/60 text-sm dark:border-sidebar-border/70">
                                         <td className="px-3 py-3 align-top">
-                                            <p className="font-semibold">{request.room.title}</p>
+                                            <Link href={roomShow(request.room.id)} className="font-semibold text-primary hover:underline">
+                                                {request.room.title}
+                                            </Link>
                                             <p className="text-xs text-muted-foreground">{request.room.city}</p>
                                         </td>
                                         <td className="px-3 py-3 align-top">
-                                            <p className="font-medium">{request.tenant.name}</p>
+                                            <Link href={userShow(request.tenant.id)} className="font-medium text-primary hover:underline">
+                                                {request.tenant.name}
+                                            </Link>
                                             <p className="text-xs text-muted-foreground">{request.tenant.email}</p>
                                         </td>
                                         <td className="px-3 py-3 align-top">
-                                            <p className="font-medium">{request.landlord.name}</p>
+                                            <Link href={userShow(request.landlord.id)} className="font-medium text-primary hover:underline">
+                                                {request.landlord.name}
+                                            </Link>
                                             <p className="text-xs text-muted-foreground">{request.landlord.email}</p>
                                         </td>
                                         <td className="px-3 py-3 align-top text-xs text-muted-foreground">

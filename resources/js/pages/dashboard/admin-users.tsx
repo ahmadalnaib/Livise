@@ -1,6 +1,6 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { admin } from '@/routes/dashboard';
-import { list as usersList } from '@/routes/dashboard/admin/users';
+import { list as usersList, show as userShow } from '@/routes/dashboard/admin/users';
 
 type UserRow = {
     id: number;
@@ -38,7 +38,11 @@ export default function AdminUsersPage({ users }: PageProps) {
                             <tbody>
                                 {users.map((user) => (
                                     <tr key={user.id} className="border-b border-sidebar-border/60 text-sm dark:border-sidebar-border/70">
-                                        <td className="px-3 py-3 font-medium">{user.name}</td>
+                                        <td className="px-3 py-3 font-medium">
+                                            <Link href={userShow(user.id)} className="text-primary hover:underline">
+                                                {user.name}
+                                            </Link>
+                                        </td>
                                         <td className="px-3 py-3 text-muted-foreground">{user.email}</td>
                                         <td className="px-3 py-3 capitalize">{user.role}</td>
                                         <td className="px-3 py-3 text-xs">

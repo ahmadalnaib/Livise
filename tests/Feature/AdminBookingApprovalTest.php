@@ -36,11 +36,11 @@ test('admin can view all booking requests table', function () {
         ->get(route('dashboard.admin'))
         ->assertOk()
         ->assertInertia(
-            fn(Assert $page) => $page
+            fn (Assert $page) => $page
                 ->component('dashboard/admin')
-                ->where('bookingRequests', fn($requests): bool => collect($requests)->pluck('room.title')->contains('Ocean Light Room'))
-                ->where('bookingRequests', fn($requests): bool => collect($requests)->pluck('tenant.email')->contains($tenant->email))
-                ->where('bookingRequests', fn($requests): bool => collect($requests)->pluck('landlord.email')->contains($landlord->email))
+                ->where('bookingRequests', fn ($requests): bool => collect($requests)->pluck('room.title')->contains('Ocean Light Room'))
+                ->where('bookingRequests', fn ($requests): bool => collect($requests)->pluck('tenant.email')->contains($tenant->email))
+                ->where('bookingRequests', fn ($requests): bool => collect($requests)->pluck('landlord.email')->contains($landlord->email))
         );
 });
 
@@ -59,7 +59,7 @@ test('admin can view all users and all rooms tables', function () {
         ->get(route('dashboard.admin'))
         ->assertOk()
         ->assertInertia(
-            fn(Assert $page) => $page
+            fn (Assert $page) => $page
                 ->component('dashboard/admin')
                 ->where('stats.allUsers', 3)
                 ->where('stats.allRooms', 1)
@@ -80,18 +80,50 @@ test('admin can access dedicated users and rooms pages', function () {
         ->get(route('dashboard.admin.users.list'))
         ->assertOk()
         ->assertInertia(
-            fn(Assert $page) => $page
+            fn (Assert $page) => $page
                 ->component('dashboard/admin-users')
-                ->where('users', fn($users): bool => collect($users)->pluck('role')->contains('landlord'))
+                ->where('users', fn ($users): bool => collect($users)->pluck('role')->contains('landlord'))
         );
 
     actingAs($admin)
         ->get(route('dashboard.admin.rooms.list'))
         ->assertOk()
         ->assertInertia(
-            fn(Assert $page) => $page
+            fn (Assert $page) => $page
                 ->component('dashboard/admin-rooms')
-                ->where('rooms', fn($rooms): bool => collect($rooms)->pluck('title')->contains('Route Test Room'))
+                ->where('rooms', fn ($rooms): bool => collect($rooms)->pluck('title')->contains('Route Test Room'))
+        );
+});
+
+test('admin can open user and room profile pages', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $tenant = User::factory()->create(['role' => 'tenant']);
+    $landlord = User::factory()->create(['role' => 'landlord']);
+    $city = City::factory()->create(['name' => 'Irbid']);
+    $room = Room::factory()->create([
+        'owner_id' => $landlord->id,
+        'city_id' => $city->id,
+        'title' => 'Profile Detail Room',
+    ]);
+
+    actingAs($admin)
+        ->get(route('dashboard.admin.users.show', $tenant))
+        ->assertOk()
+        ->assertInertia(
+            fn (Assert $page) => $page
+                ->component('dashboard/admin-user-show')
+                ->where('user.email', $tenant->email)
+                ->where('user.role', 'tenant')
+        );
+
+    actingAs($admin)
+        ->get(route('dashboard.admin.rooms.show', $room))
+        ->assertOk()
+        ->assertInertia(
+            fn (Assert $page) => $page
+                ->component('dashboard/admin-room-show')
+                ->where('room.title', 'Profile Detail Room')
+                ->where('room.city', 'Irbid')
         );
 });
 

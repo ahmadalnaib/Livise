@@ -1,11 +1,13 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { admin } from '@/routes/dashboard';
-import { list as roomsList } from '@/routes/dashboard/admin/rooms';
+import { list as roomsList, show as roomShow } from '@/routes/dashboard/admin/rooms';
+import { show as userShow } from '@/routes/dashboard/admin/users';
 
 type RoomRow = {
     id: number;
     title: string;
     city: string;
+    landlordId: number | null;
     landlordName: string;
     landlordEmail: string;
     rentalsCount: number;
@@ -39,10 +41,20 @@ export default function AdminRoomsPage({ rooms }: PageProps) {
                             <tbody>
                                 {rooms.map((room) => (
                                     <tr key={room.id} className="border-b border-sidebar-border/60 text-sm dark:border-sidebar-border/70">
-                                        <td className="px-3 py-3 font-medium">{room.title}</td>
+                                        <td className="px-3 py-3 font-medium">
+                                            <Link href={roomShow(room.id)} className="text-primary hover:underline">
+                                                {room.title}
+                                            </Link>
+                                        </td>
                                         <td className="px-3 py-3 text-muted-foreground">{room.city}</td>
                                         <td className="px-3 py-3">
-                                            <p>{room.landlordName}</p>
+                                            {room.landlordId ? (
+                                                <Link href={userShow(room.landlordId)} className="hover:underline">
+                                                    {room.landlordName}
+                                                </Link>
+                                            ) : (
+                                                <span>{room.landlordName}</span>
+                                            )}
                                             <p className="text-xs text-muted-foreground">{room.landlordEmail}</p>
                                         </td>
                                         <td className="px-3 py-3">{room.rentalsCount}</td>
