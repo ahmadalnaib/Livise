@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Dashboard\SeekerDashboardController;
+use App\Http\Controllers\Dashboard\SeekerRoomController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -9,20 +10,20 @@ Route::inertia('/', 'welcome', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
 
-Route::inertia('/welcome/seeker', 'welcome/seeker', [
-    'canRegister' => Features::enabled(Features::registration()),
-])->name('welcome.seeker');
-
-Route::inertia('/welcome/tenant', 'welcome/tenant', [
+Route::inertia('/welcome/tenant', 'welcome/seeker', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('welcome.tenant');
+
+Route::inertia('/welcome/landlord', 'welcome/tenant', [
+    'canRegister' => Features::enabled(Features::registration()),
+])->name('welcome.landlord');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function (Request $request) {
         return redirect()->route(match ($request->user()->role) {
             'admin' => 'dashboard.admin',
-            'tenant' => 'dashboard.tenant',
-            default => 'dashboard.seeker',
+            'landlord' => 'dashboard.landlord',
+            default => 'dashboard.tenant',
         });
     })->name('dashboard');
 
@@ -30,25 +31,33 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('role:admin')
         ->name('dashboard.admin');
 
-    Route::get('dashboard/seeker', [SeekerDashboardController::class, 'show'])
-        ->middleware('role:seeker')
-        ->name('dashboard.seeker');
-
-    Route::post('dashboard/seeker/preferences', [SeekerDashboardController::class, 'storePreferences'])
-        ->middleware('role:seeker')
-        ->name('dashboard.seeker.preferences.store');
-
-    Route::post('dashboard/seeker/swipe', [SeekerDashboardController::class, 'storeSwipe'])
-        ->middleware('role:seeker')
-        ->name('dashboard.seeker.swipe.store');
-
-    Route::post('dashboard/seeker/reset', [SeekerDashboardController::class, 'reset'])
-        ->middleware('role:seeker')
-        ->name('dashboard.seeker.reset');
-
-    Route::inertia('dashboard/tenant', 'dashboard/tenant')
+    Route::get('dashboard/tenant', [SeekerDashboardController::class, 'show'])
         ->middleware('role:tenant')
         ->name('dashboard.tenant');
+
+    Route::post('dashboard/tenant/preferences', [SeekerDashboardController::class, 'storePreferences'])
+        ->middleware('role:tenant')
+        ->name('dashboard.tenant.preferences.store');
+
+    Route::post('dashboard/tenant/swipe', [SeekerDashboardController::class, 'storeSwipe'])
+        ->middleware('role:tenant')
+        ->name('dashboard.tenant.swipe.store');
+
+    Route::post('dashboard/tenant/reset', [SeekerDashboardController::class, 'reset'])
+        ->middleware('role:tenant')
+        ->name('dashboard.tenant.reset');
+
+    Route::get('dashboard/tenant/rooms/{room}', [SeekerRoomController::class, 'show'])
+        ->middleware('role:tenant')
+        ->name('dashboard.tenant.rooms.show');
+
+    Route::post('dashboard/tenant/rooms/{room}/rent', [SeekerRoomController::class, 'storeRental'])
+        ->middleware('role:tenant')
+        ->name('dashboard.tenant.rooms.rent.store');
+
+    Route::inertia('dashboard/landlord', 'dashboard/tenant')
+        ->middleware('role:landlord')
+        ->name('dashboard.landlord');
 });
 
 require __DIR__.'/settings.php';

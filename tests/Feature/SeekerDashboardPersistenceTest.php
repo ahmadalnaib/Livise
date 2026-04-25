@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\City;
+use App\Models\Room;
 use App\Models\SeekerSession;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -10,11 +12,11 @@ use function Pest\Laravel\post;
 
 uses(RefreshDatabase::class);
 
-test('seeker can save questionnaire answers', function () {
-    /** @var User $seeker */
-    $seeker = User::factory()->create(['role' => 'seeker']);
+test('tenant can save questionnaire answers', function () {
+    /** @var User $tenant */
+    $tenant = User::factory()->create(['role' => 'tenant']);
 
-    $response = actingAs($seeker)->post(route('dashboard.seeker.preferences.store'), [
+    $response = actingAs($tenant)->post(route('dashboard.tenant.preferences.store'), [
         'roomSize' => 'medium',
         'budget' => 'mid',
         'roommatePreference' => 'private',
@@ -24,7 +26,7 @@ test('seeker can save questionnaire answers', function () {
 
     $response->assertRedirect();
 
-    $session = SeekerSession::query()->where('user_id', $seeker->id)->first();
+    $session = SeekerSession::query()->where('user_id', $tenant->id)->first();
 
     expect($session)->not->toBeNull();
     expect($session->questionnaire_completed)->toBeTrue();
@@ -37,32 +39,44 @@ test('seeker can save questionnaire answers', function () {
     ]);
 });
 
-test('seeker right swipe is stored as a favorite', function () {
-    /** @var User $seeker */
-    $seeker = User::factory()->create(['role' => 'seeker']);
+test('tenant right swipe is stored as a favorite', function () {
+    /** @var User $tenant */
+    $tenant = User::factory()->create(['role' => 'tenant']);
+    $landlord = User::factory()->create(['role' => 'landlord']);
+    $city = City::factory()->create();
+    $room = Room::factory()->create([
+        'owner_id' => $landlord->id,
+        'city_id' => $city->id,
+    ]);
 
-    $response = actingAs($seeker)->post(route('dashboard.seeker.swipe.store'), [
-        'roomId' => 1,
+    $response = actingAs($tenant)->post(route('dashboard.tenant.swipe.store'), [
+        'roomId' => $room->id,
         'direction' => 'right',
     ]);
 
     $response->assertRedirect();
 
-    $session = SeekerSession::query()->where('user_id', $seeker->id)->first();
+    $session = SeekerSession::query()->where('user_id', $tenant->id)->first();
 
     expect($session)->not->toBeNull();
-    expect($session->liked_room_ids)->toContain(1);
-    expect($session->passed_room_ids)->not->toContain(1);
+    expect($session->liked_room_ids)->toContain($room->id);
+    expect($session->passed_room_ids)->not->toContain($room->id);
     expect($session->current_index)->toBe(1);
 });
 
-test('non seeker cannot use seeker persistence routes', function () {
-    /** @var User $tenant */
-    $tenant = User::factory()->create(['role' => 'tenant']);
+test('non tenant cannot use tenant persistence routes', function () {
+    /** @var User $landlord */
+    $landlord = User::factory()->create(['role' => 'landlord']);
+    $owner = User::factory()->create(['role' => 'landlord']);
+    $city = City::factory()->create();
+    $room = Room::factory()->create([
+        'owner_id' => $owner->id,
+        'city_id' => $city->id,
+    ]);
 
-    actingAs($tenant);
+    actingAs($landlord);
 
-    post(route('dashboard.seeker.preferences.store'), [
+    post(route('dashboard.tenant.preferences.store'), [
         'roomSize' => 'medium',
         'budget' => 'mid',
         'roommatePreference' => 'private',
@@ -71,13 +85,13 @@ test('non seeker cannot use seeker persistence routes', function () {
     ])
         ->assertForbidden();
 
-    post(route('dashboard.seeker.swipe.store'), [
-        'roomId' => 1,
+    post(route('dashboard.tenant.swipe.store'), [
+        'roomId' => $room->id,
         'direction' => 'right',
     ])
         ->assertForbidden();
 
     assertDatabaseMissing('seeker_sessions', [
-        'user_id' => $tenant->id,
+        'user_id' => $landlord->id,
     ]);
 });

@@ -10,12 +10,12 @@ test('guests are redirected to the login page', function () {
     $response->assertRedirect(route('login'));
 });
 
-test('authenticated seekers are redirected to seeker dashboard', function () {
-    $user = User::factory()->create(['role' => 'seeker']);
+test('authenticated tenants are redirected to tenant dashboard', function () {
+    $user = User::factory()->create(['role' => 'tenant']);
     $this->actingAs($user);
 
     $response = $this->get(route('dashboard'));
-    $response->assertRedirect(route('dashboard.seeker', absolute: false));
+    $response->assertRedirect(route('dashboard.tenant', absolute: false));
 });
 
 test('admin can access only admin dashboard', function () {
@@ -23,7 +23,16 @@ test('admin can access only admin dashboard', function () {
     $this->actingAs($admin);
 
     $this->get(route('dashboard.admin'))->assertOk();
-    $this->get(route('dashboard.seeker'))->assertForbidden();
+    $this->get(route('dashboard.tenant'))->assertForbidden();
+    $this->get(route('dashboard.landlord'))->assertForbidden();
+});
+
+test('landlord can access only landlord dashboard', function () {
+    $landlord = User::factory()->create(['role' => 'landlord']);
+    $this->actingAs($landlord);
+
+    $this->get(route('dashboard.landlord'))->assertOk();
+    $this->get(route('dashboard.admin'))->assertForbidden();
     $this->get(route('dashboard.tenant'))->assertForbidden();
 });
 
@@ -33,14 +42,5 @@ test('tenant can access only tenant dashboard', function () {
 
     $this->get(route('dashboard.tenant'))->assertOk();
     $this->get(route('dashboard.admin'))->assertForbidden();
-    $this->get(route('dashboard.seeker'))->assertForbidden();
-});
-
-test('seeker can access only seeker dashboard', function () {
-    $seeker = User::factory()->create(['role' => 'seeker']);
-    $this->actingAs($seeker);
-
-    $this->get(route('dashboard.seeker'))->assertOk();
-    $this->get(route('dashboard.admin'))->assertForbidden();
-    $this->get(route('dashboard.tenant'))->assertForbidden();
+    $this->get(route('dashboard.landlord'))->assertForbidden();
 });

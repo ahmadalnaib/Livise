@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Models\Room;
 use App\Models\SeekerSession;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,19 +16,28 @@ class SeekerDashboardController extends Controller
     public function show(Request $request): Response
     {
         $session = $this->seekerSession($request);
-        $rooms = $this->roomDeck();
-        $likedRoomIds = $session->liked_room_ids ?? [];
+        $rooms = Room::query()
+            ->with(['city:id,name', 'owner:id,name'])
+            ->latest('id')
+            ->get();
+
+        $roomCards = $rooms
+            ->map(fn (Room $room): array => $this->roomCard($room))
+            ->all();
+        $availableRoomIds = $rooms->modelKeys();
+        $likedRoomIds = collect($session->liked_room_ids ?? [])->intersect($availableRoomIds)->values()->all();
+        $passedRoomIds = collect($session->passed_room_ids ?? [])->intersect($availableRoomIds)->values()->all();
 
         return Inertia::render('dashboard/seeker', [
-            'rooms' => $rooms,
+            'rooms' => $roomCards,
             'seekerSession' => [
                 'answers' => $session->answers,
                 'likedRoomIds' => $likedRoomIds,
-                'passedRoomIds' => $session->passed_room_ids ?? [],
-                'currentIndex' => $session->current_index,
+                'passedRoomIds' => $passedRoomIds,
+                'currentIndex' => min($session->current_index, count($roomCards)),
                 'questionnaireCompleted' => $session->questionnaire_completed,
             ],
-            'favoriteRooms' => collect($rooms)
+            'favoriteRooms' => collect($roomCards)
                 ->filter(fn (array $room): bool => in_array($room['id'], $likedRoomIds, true))
                 ->values()
                 ->all(),
@@ -55,7 +65,7 @@ class SeekerDashboardController extends Controller
 
     public function storeSwipe(Request $request): RedirectResponse
     {
-        $roomIds = collect($this->roomDeck())->pluck('id')->all();
+        $roomIds = Room::query()->pluck('id')->all();
 
         $validated = $request->validate([
             'roomId' => ['required', 'integer', Rule::in($roomIds)],
@@ -114,43 +124,19 @@ class SeekerDashboardController extends Controller
     }
 
     /**
-     * @return list<array{id: int, title: string, city: string, pricePerNight: string, tags: list<string>, image: string}>
+     * @return array{id: int, title: string, city: string, pricePerNight: string, tags: list<string>, image: string, description: string, ownerName: string}
      */
-    private function roomDeck(): array
+    private function roomCard(Room $room): array
     {
         return [
-            [
-                'id' => 1,
-                'title' => 'Sunset Balcony Studio',
-                'city' => 'Amman',
-                'pricePerNight' => '$46',
-                'tags' => ['Wi-Fi', 'Near Downtown', 'Balcony'],
-                'image' => 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80',
-            ],
-            [
-                'id' => 2,
-                'title' => 'Aqaba Sea Breeze Room',
-                'city' => 'Aqaba',
-                'pricePerNight' => '$58',
-                'tags' => ['Sea View', 'Private Bath', 'AC'],
-                'image' => 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80',
-            ],
-            [
-                'id' => 3,
-                'title' => 'Minimal Corner Loft',
-                'city' => 'Irbid',
-                'pricePerNight' => '$39',
-                'tags' => ['Quiet Area', 'Kitchen', 'Long Stay'],
-                'image' => 'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80',
-            ],
-            [
-                'id' => 4,
-                'title' => 'Olive Garden Room',
-                'city' => 'Jerash',
-                'pricePerNight' => '$41',
-                'tags' => ['Parking', 'Garden', 'Fast Check-in'],
-                'image' => 'https://images.unsplash.com/photo-1464890100898-a385f744067f?auto=format&fit=crop&w=1200&q=80',
-            ],
+            'id' => $room->id,
+            'title' => $room->title,
+            'city' => (string) $room->city?->name,
+            'pricePerNight' => $room->pricePerNightLabel(),
+            'tags' => $room->catalogHighlights(),
+            'image' => $room->catalogImage(),
+            'description' => (string) $room->description,
+            'ownerName' => (string) $room->owner?->name,
         ];
     }
 }

@@ -37,12 +37,12 @@ export default function TenantWelcome({ canRegister = true }: TenantProps) {
 
     return (
         <>
-            <Head title="Tenant Welcome" />
+            <Head title="Landlord Welcome" />
 
             <div className="min-h-screen bg-[#f5f1ea] text-stone-900 dark:bg-[#101826] dark:text-stone-100">
                 <div className="mx-auto w-full max-w-7xl px-6 py-8 lg:px-8 lg:py-10">
                     <header className="mb-10 flex items-center justify-between rounded-full border border-black/8 bg-white/80 px-4 py-3 dark:border-white/10 dark:bg-white/6">
-                        <p className="text-sm font-semibold">Tenant view</p>
+                        <p className="text-sm font-semibold">Landlord view</p>
                         <Link href={home()} className="text-sm text-stone-600 underline-offset-4 hover:underline dark:text-stone-300">
                             Switch role
                         </Link>
@@ -66,7 +66,7 @@ export default function TenantWelcome({ canRegister = true }: TenantProps) {
                                 </Link>
                                 {canRegister && !auth.user ? (
                                     <Link
-                                        href={register({ query: { role: 'tenant' } })}
+                                        href={register({ query: { role: 'landlord' } })}
                                         className="inline-flex items-center rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold dark:border-white/10 dark:bg-white/6"
                                     >
                                         Create account

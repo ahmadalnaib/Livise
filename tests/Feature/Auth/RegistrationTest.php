@@ -20,7 +20,7 @@ test('new users can register', function () {
     $response = $this->post(route('register.store'), [
         'name' => 'Test User',
         'email' => 'test@example.com',
-        'role' => 'seeker',
+        'role' => 'tenant',
         'password' => 'password',
         'password_confirmation' => 'password',
     ]);
@@ -28,7 +28,7 @@ test('new users can register', function () {
     $this->assertAuthenticated();
     $response->assertRedirect(route('dashboard', absolute: false));
 
-    expect(User::first()?->role)->toBe('seeker');
+    expect(User::first()?->role)->toBe('tenant');
 });
 
 test('registration requires a valid role', function () {

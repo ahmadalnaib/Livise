@@ -1,0 +1,82 @@
+<?php
+
+namespace App\Http\Controllers\Dashboard;
+
+use App\Http\Controllers\Controller;
+use App\Models\Rental;
+use App\Models\Room;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class SeekerRoomController extends Controller
+{
+    public function show(Request $request, Room $room): Response
+    {
+        $room->load([
+            'city:id,name',
+            'owner:id,name',
+            'rentals' => fn ($query) => $query->with('renter:id,name')->orderBy('starts_at'),
+        ]);
+
+        $currentUserRental = $room->rentals
+            ->firstWhere('renter_id', $request->user()->id);
+
+        return Inertia::render('dashboard/seeker-room-show', [
+            'room' => [
+                'id' => $room->id,
+                'title' => $room->title,
+                'description' => (string) $room->description,
+                'city' => (string) $room->city?->name,
+                'ownerName' => (string) $room->owner?->name,
+                'pricePerNight' => $room->pricePerNightLabel(),
+                'image' => $room->catalogImage(),
+                'tags' => $room->catalogHighlights(),
+            ],
+            'bookedRanges' => $room->rentals
+                ->map(fn (Rental $rental): array => [
+                    'id' => $rental->id,
+                    'startsAt' => $rental->starts_at->toDateString(),
+                    'endsAt' => $rental->ends_at->toDateString(),
+                    'renterName' => (string) $rental->renter?->name,
+                ])
+                ->all(),
+            'currentUserRental' => $currentUserRental === null ? null : [
+                'startsAt' => $currentUserRental->starts_at->toDateString(),
+                'endsAt' => $currentUserRental->ends_at->toDateString(),
+            ],
+            'canRent' => $room->owner_id !== $request->user()->id,
+        ]);
+    }
+
+    public function storeRental(Request $request, Room $room): RedirectResponse
+    {
+        $validated = $request->validate([
+            'starts_at' => ['required', 'date', 'after_or_equal:today'],
+            'ends_at' => ['required', 'date', 'after:starts_at'],
+        ]);
+
+        if ($room->owner_id === $request->user()->id) {
+            throw ValidationException::withMessages([
+                'starts_at' => 'You cannot rent your own room.',
+            ]);
+        }
+
+        if ($room->overlapsRentalPeriod($validated['starts_at'], $validated['ends_at'])) {
+            throw ValidationException::withMessages([
+                'starts_at' => 'This room is already booked for the selected dates.',
+            ]);
+        }
+
+        Rental::query()->create([
+            'room_id' => $room->id,
+            'renter_id' => $request->user()->id,
+            'starts_at' => $validated['starts_at'],
+            'ends_at' => $validated['ends_at'],
+        ]);
+
+        return to_route('dashboard.tenant.rooms.show', $room);
+    }
+}

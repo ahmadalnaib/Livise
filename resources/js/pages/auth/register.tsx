@@ -10,10 +10,10 @@ import { login } from '@/routes';
 import { store } from '@/routes/register';
 
 type RegisterProps = {
-    role?: 'tenant' | 'seeker';
+    role?: 'tenant' | 'landlord';
 };
 
-export default function Register({ role = 'seeker' }: RegisterProps) {
+export default function Register({ role = 'tenant' }: RegisterProps) {
     return (
         <>
             <Head title="Register" />
@@ -68,8 +68,8 @@ export default function Register({ role = 'seeker' }: RegisterProps) {
                                     defaultValue={role}
                                     className="h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none"
                                 >
-                                    <option value="seeker">Seeker (I want to rent)</option>
-                                    <option value="tenant">Tenant (I list rooms)</option>
+                                    <option value="tenant">Tenant (I want to rent)</option>
+                                    <option value="landlord">Landlord (I list rooms)</option>
                                 </select>
                                 <InputError message={errors.role} />
                             </div>

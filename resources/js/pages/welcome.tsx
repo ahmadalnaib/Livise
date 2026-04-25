@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowRight, Home, KeyRound } from 'lucide-react';
-import { seeker, tenant } from '@/routes/welcome';
+import { landlord, tenant } from '@/routes/welcome';
 
 type WelcomeProps = {
     canRegister?: boolean;
@@ -35,14 +35,14 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                                 Choose your role first
                             </h1>
                             <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-stone-600 dark:text-stone-300 sm:text-lg">
-                                Continue as a seeker to find rooms or continue as a tenant
-                                (owner) to list rooms for rent.
+                                Continue as a tenant to find rooms or continue as a landlord
+                                to list rooms for rent.
                             </p>
                         </div>
 
                         <div className="grid w-full gap-6 md:grid-cols-2">
                             <Link
-                                href={seeker()}
+                                href={tenant()}
                                 className="group overflow-hidden rounded-[2rem] border border-black/8 bg-white/80 p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-white/6"
                             >
                                 <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-stone-900 text-white dark:bg-white dark:text-stone-900">
@@ -52,20 +52,20 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                                     className="text-3xl font-semibold text-stone-900 dark:text-white"
                                     style={{ fontFamily: '"Fraunces", serif' }}
                                 >
-                                    I am a seeker
+                                    I am a tenant
                                 </h2>
                                 <p className="mt-3 text-sm leading-7 text-stone-600 dark:text-stone-300">
                                     Browse available rooms by city, compare photos and prices,
                                     and find your next stay.
                                 </p>
                                 <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white dark:bg-white dark:text-stone-900">
-                                    Open seeker page
+                                    Open tenant page
                                     <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
                                 </div>
                             </Link>
 
                             <Link
-                                href={tenant()}
+                                href={landlord()}
                                 className="group overflow-hidden rounded-[2rem] border border-black/8 bg-white/80 p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-white/6"
                             >
                                 <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-stone-900 text-white dark:bg-white dark:text-stone-900">
@@ -75,14 +75,14 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                                     className="text-3xl font-semibold text-stone-900 dark:text-white"
                                     style={{ fontFamily: '"Fraunces", serif' }}
                                 >
-                                    I am a tenant
+                                    I am a landlord
                                 </h2>
                                 <p className="mt-3 text-sm leading-7 text-stone-600 dark:text-stone-300">
                                     Create room listings, add city details and pricing,
                                     and attract the right renters.
                                 </p>
                                 <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white dark:bg-white dark:text-stone-900">
-                                    Open tenant page
+                                    Open landlord page
                                     <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
                                 </div>
                             </Link>

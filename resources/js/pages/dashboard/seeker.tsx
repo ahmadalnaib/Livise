@@ -1,7 +1,7 @@
-import { Head, router, usePage } from '@inertiajs/react';
-import { BedDouble, Heart, MapPinned, RotateCcw, X } from 'lucide-react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { ArrowLeft, ArrowRight, BedDouble, Heart, MapPinned, RotateCcw, Sparkles, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { seeker } from '@/routes/dashboard';
+import { tenant } from '@/routes/dashboard';
 
 type RoomCard = {
     id: number;
@@ -10,6 +10,8 @@ type RoomCard = {
     pricePerNight: string;
     tags: string[];
     image: string;
+    description: string;
+    ownerName: string;
 };
 
 type PreferenceAnswers = {
@@ -42,9 +44,82 @@ const emptyAnswers: PreferenceAnswers = {
     stayLength: '',
 };
 
+const questions: Array<{
+    field: keyof PreferenceAnswers;
+    eyebrow: string;
+    title: string;
+    helper: string;
+    options: Array<{ value: string; label: string; caption: string }>;
+}> = [
+        {
+            field: 'roomSize',
+            eyebrow: 'Question 1',
+            title: 'What kind of room size feels right for you?',
+            helper: 'Choose the amount of personal space you want to see first in the deck.',
+            options: [
+                { value: 'small', label: 'Small', caption: 'Compact and efficient.' },
+                { value: 'medium', label: 'Medium', caption: 'Balanced comfort for daily stays.' },
+                { value: 'large', label: 'Large', caption: 'Extra space to relax and work.' },
+            ],
+        },
+        {
+            field: 'budget',
+            eyebrow: 'Question 2',
+            title: 'How much do you want to spend per night?',
+            helper: 'This keeps the next room cards close to your price comfort zone.',
+            options: [
+                { value: 'low', label: 'Under $40', caption: 'Budget-first stays.' },
+                { value: 'mid', label: '$40 - $60', caption: 'The most balanced range.' },
+                { value: 'high', label: 'Over $60', caption: 'Premium feel and location.' },
+            ],
+        },
+        {
+            field: 'roommatePreference',
+            eyebrow: 'Question 3',
+            title: 'Do you want a private or shared setup?',
+            helper: 'We will use this to shape the room mood and privacy level you see.',
+            options: [
+                { value: 'private', label: 'Private', caption: 'Your own calm space.' },
+                { value: 'shared', label: 'Shared', caption: 'Social and lower cost.' },
+                { value: 'either', label: 'Either', caption: 'Show me the best options.' },
+            ],
+        },
+        {
+            field: 'preferredCityType',
+            eyebrow: 'Question 4',
+            title: 'Which kind of area fits your lifestyle?',
+            helper: 'Some seekers want city energy, others want slower and quieter neighborhoods.',
+            options: [
+                { value: 'central', label: 'Central', caption: 'Walkable and connected.' },
+                { value: 'quiet', label: 'Quiet', caption: 'Calm streets and less noise.' },
+                { value: 'coastal', label: 'Coastal', caption: 'Relaxed rooms near the sea.' },
+            ],
+        },
+        {
+            field: 'stayLength',
+            eyebrow: 'Question 5',
+            title: 'How long do you expect to stay?',
+            helper: 'This helps highlight flexible listings with the right stay rhythm.',
+            options: [
+                { value: 'short', label: '1-7 days', caption: 'Quick visits and short breaks.' },
+                { value: 'medium', label: '1-4 weeks', caption: 'A comfortable medium stay.' },
+                { value: 'long', label: '1+ month', caption: 'Long-term living mode.' },
+            ],
+        },
+    ];
+
+function firstIncompleteQuestionIndex(answers: PreferenceAnswers): number {
+    const index = questions.findIndex((question) => answers[question.field] === '');
+
+    return index === -1 ? questions.length - 1 : index;
+}
+
 export default function SeekerDashboard() {
     const { rooms, seekerSession, favoriteRooms } = usePage<PageProps>().props;
     const [answers, setAnswers] = useState<PreferenceAnswers>(seekerSession.answers ?? emptyAnswers);
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(() =>
+        firstIncompleteQuestionIndex(seekerSession.answers ?? emptyAnswers),
+    );
 
     const currentRoom = rooms[seekerSession.currentIndex];
     const remainingCount = rooms.length - seekerSession.currentIndex;
@@ -52,6 +127,7 @@ export default function SeekerDashboard() {
     const passedCount = seekerSession.passedRoomIds.length;
     const isQuestionnaireCompleted = seekerSession.questionnaireCompleted;
     const hasAnsweredAllQuestions = Object.values(answers).every(Boolean);
+    const currentQuestion = questions[currentQuestionIndex];
 
     const completion = useMemo(() => {
         if (rooms.length === 0) {
@@ -68,6 +144,26 @@ export default function SeekerDashboard() {
         }));
     };
 
+    const handleQuestionAnswer = (field: keyof PreferenceAnswers, value: string): void => {
+        handleAnswerChange(field, value);
+
+        if (currentQuestionIndex < questions.length - 1) {
+            setCurrentQuestionIndex((index) => Math.min(index + 1, questions.length - 1));
+        }
+    };
+
+    const handlePreviousQuestion = (): void => {
+        setCurrentQuestionIndex((index) => Math.max(index - 1, 0));
+    };
+
+    const handleNextQuestion = (): void => {
+        if (!answers[currentQuestion.field]) {
+            return;
+        }
+
+        setCurrentQuestionIndex((index) => Math.min(index + 1, questions.length - 1));
+    };
+
     const handleQuestionnaireSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
         event.preventDefault();
 
@@ -75,7 +171,7 @@ export default function SeekerDashboard() {
             return;
         }
 
-        router.post(seeker.preferences.store(), answers, {
+        router.post(tenant.preferences.store(), answers, {
             preserveScroll: true,
             preserveState: false,
         });
@@ -88,7 +184,7 @@ export default function SeekerDashboard() {
             }
 
             router.post(
-                seeker.swipe.store(),
+                tenant.swipe.store(),
                 {
                     roomId: currentRoom.id,
                     direction,
@@ -111,7 +207,7 @@ export default function SeekerDashboard() {
     }, [submitSwipe]);
 
     const resetDeck = (): void => {
-        router.post(seeker.reset(), {}, {
+        router.post(tenant.reset(), {}, {
             preserveScroll: true,
             preserveState: false,
         });
@@ -141,7 +237,7 @@ export default function SeekerDashboard() {
 
     return (
         <>
-            <Head title="Seeker Dashboard" />
+            <Head title="Tenant Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="grid gap-4 md:grid-cols-3">
                     <div className="rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border dark:bg-sidebar">
@@ -162,95 +258,146 @@ export default function SeekerDashboard() {
                 </div>
 
                 {!isQuestionnaireCompleted ? (
-                    <div className="rounded-xl border border-sidebar-border/70 bg-white p-6 dark:border-sidebar-border dark:bg-sidebar">
-                        <div className="mb-5">
-                            <h2 className="text-lg font-semibold">Before we show rooms, answer 5 questions</h2>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                We will use these answers to shape your swipe experience.
-                            </p>
-                        </div>
+                    <div className="overflow-hidden rounded-4xl border border-sidebar-border/70 bg-white dark:border-sidebar-border dark:bg-sidebar">
+                        <div className="grid gap-0 lg:grid-cols-[0.95fr_1.05fr]">
+                            <div className="bg-[radial-gradient(circle_at_top,rgba(217,119,6,0.18),transparent_58%),linear-gradient(180deg,rgba(24,24,27,0.96),rgba(39,39,42,0.92))] p-8 text-white">
+                                <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.3em] text-white/70">
+                                    <Sparkles className="size-3.5" />
+                                    Match Setup
+                                </div>
 
-                        <form onSubmit={handleQuestionnaireSubmit} className="grid gap-4 md:grid-cols-2">
-                            <label className="grid gap-2 text-sm font-medium">
-                                1. What room size do you prefer?
-                                <select
-                                    value={answers.roomSize}
-                                    onChange={(event) => handleAnswerChange('roomSize', event.target.value)}
-                                    className="h-10 rounded-md border border-sidebar-border/70 bg-transparent px-3 text-sm dark:border-sidebar-border"
-                                >
-                                    <option value="">Select size</option>
-                                    <option value="small">Small</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="large">Large</option>
-                                </select>
-                            </label>
+                                <h2 className="mt-6 max-w-sm text-3xl font-semibold leading-tight">
+                                    Let&apos;s shape your room feed one choice at a time.
+                                </h2>
+                                <p className="mt-4 max-w-md text-sm leading-6 text-white/70">
+                                    Instead of a long form, you answer one focused question, then we open a cleaner room browsing flow.
+                                </p>
 
-                            <label className="grid gap-2 text-sm font-medium">
-                                2. What is your nightly budget?
-                                <select
-                                    value={answers.budget}
-                                    onChange={(event) => handleAnswerChange('budget', event.target.value)}
-                                    className="h-10 rounded-md border border-sidebar-border/70 bg-transparent px-3 text-sm dark:border-sidebar-border"
-                                >
-                                    <option value="">Select budget</option>
-                                    <option value="low">Under $40</option>
-                                    <option value="mid">$40 - $60</option>
-                                    <option value="high">Over $60</option>
-                                </select>
-                            </label>
+                                <div className="mt-10 space-y-4">
+                                    {questions.map((question, index) => {
+                                        const isActive = index === currentQuestionIndex;
+                                        const isDone = answers[question.field] !== '';
 
-                            <label className="grid gap-2 text-sm font-medium">
-                                3. Shared room or private room?
-                                <select
-                                    value={answers.roommatePreference}
-                                    onChange={(event) => handleAnswerChange('roommatePreference', event.target.value)}
-                                    className="h-10 rounded-md border border-sidebar-border/70 bg-transparent px-3 text-sm dark:border-sidebar-border"
-                                >
-                                    <option value="">Select preference</option>
-                                    <option value="private">Private</option>
-                                    <option value="shared">Shared</option>
-                                    <option value="either">Either</option>
-                                </select>
-                            </label>
-
-                            <label className="grid gap-2 text-sm font-medium">
-                                4. Which city type do you like?
-                                <select
-                                    value={answers.preferredCityType}
-                                    onChange={(event) => handleAnswerChange('preferredCityType', event.target.value)}
-                                    className="h-10 rounded-md border border-sidebar-border/70 bg-transparent px-3 text-sm dark:border-sidebar-border"
-                                >
-                                    <option value="">Select city type</option>
-                                    <option value="central">Central</option>
-                                    <option value="quiet">Quiet area</option>
-                                    <option value="coastal">Coastal</option>
-                                </select>
-                            </label>
-
-                            <label className="grid gap-2 text-sm font-medium md:col-span-2">
-                                5. How long is your expected stay?
-                                <select
-                                    value={answers.stayLength}
-                                    onChange={(event) => handleAnswerChange('stayLength', event.target.value)}
-                                    className="h-10 rounded-md border border-sidebar-border/70 bg-transparent px-3 text-sm dark:border-sidebar-border"
-                                >
-                                    <option value="">Select stay length</option>
-                                    <option value="short">1-7 days</option>
-                                    <option value="medium">1-4 weeks</option>
-                                    <option value="long">1+ month</option>
-                                </select>
-                            </label>
-
-                            <div className="md:col-span-2">
-                                <button
-                                    type="submit"
-                                    disabled={!hasAnsweredAllQuestions}
-                                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
-                                >
-                                    Start Tinder Swipe
-                                </button>
+                                        return (
+                                            <div
+                                                key={question.field}
+                                                className={`rounded-2xl border px-4 py-3 transition ${isActive
+                                                    ? 'border-white/30 bg-white/14'
+                                                    : isDone
+                                                        ? 'border-emerald-300/30 bg-emerald-300/10'
+                                                        : 'border-white/10 bg-white/5'
+                                                    }`}
+                                            >
+                                                <p className="text-xs uppercase tracking-[0.25em] text-white/55">{question.eyebrow}</p>
+                                                <p className="mt-1 text-sm font-medium text-white/90">{question.title}</p>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </form>
+
+                            <form onSubmit={handleQuestionnaireSubmit} className="flex flex-col justify-between p-8">
+                                <div>
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div>
+                                            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+                                                {currentQuestion.eyebrow}
+                                            </p>
+                                            <h3 className="mt-3 max-w-xl text-2xl font-semibold leading-tight">
+                                                {currentQuestion.title}
+                                            </h3>
+                                        </div>
+                                        <p className="text-sm text-muted-foreground">
+                                            {currentQuestionIndex + 1} / {questions.length}
+                                        </p>
+                                    </div>
+
+                                    <div className="mt-6 h-2 overflow-hidden rounded-full bg-black/5 dark:bg-white/10">
+                                        <div
+                                            className="h-full rounded-full bg-primary transition-all duration-300"
+                                            style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
+                                        />
+                                    </div>
+
+                                    <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground">
+                                        {currentQuestion.helper}
+                                    </p>
+
+                                    <div className="mt-8 grid gap-3">
+                                        {currentQuestion.options.map((option) => {
+                                            const isSelected = answers[currentQuestion.field] === option.value;
+
+                                            return (
+                                                <button
+                                                    key={option.value}
+                                                    type="button"
+                                                    onClick={() => handleQuestionAnswer(currentQuestion.field, option.value)}
+                                                    className={`rounded-2xl border px-5 py-4 text-left transition ${isSelected
+                                                        ? 'border-primary bg-primary/8 shadow-sm'
+                                                        : 'border-sidebar-border/70 hover:border-primary/40 hover:bg-primary/4 dark:border-sidebar-border'
+                                                        }`}
+                                                >
+                                                    <div className="flex items-center justify-between gap-4">
+                                                        <div>
+                                                            <p className="text-base font-semibold">{option.label}</p>
+                                                            <p className="mt-1 text-sm text-muted-foreground">
+                                                                {option.caption}
+                                                            </p>
+                                                        </div>
+                                                        <div
+                                                            className={`size-4 rounded-full border ${isSelected
+                                                                ? 'border-primary bg-primary'
+                                                                : 'border-sidebar-border/70 dark:border-sidebar-border'
+                                                                }`}
+                                                        />
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                <div className="mt-8 flex flex-col gap-4 border-t border-sidebar-border/70 pt-6 dark:border-sidebar-border sm:flex-row sm:items-center sm:justify-between">
+                                    <div className="flex gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={handlePreviousQuestion}
+                                            disabled={currentQuestionIndex === 0}
+                                            className="inline-flex items-center gap-2 rounded-full border border-sidebar-border/70 px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50 dark:border-sidebar-border"
+                                        >
+                                            <ArrowLeft className="size-4" />
+                                            Back
+                                        </button>
+
+                                        {currentQuestionIndex < questions.length - 1 ? (
+                                            <button
+                                                type="button"
+                                                onClick={handleNextQuestion}
+                                                disabled={!answers[currentQuestion.field]}
+                                                className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                Next
+                                                <ArrowRight className="size-4" />
+                                            </button>
+                                        ) : null}
+                                    </div>
+
+                                    {currentQuestionIndex === questions.length - 1 ? (
+                                        <button
+                                            type="submit"
+                                            disabled={!hasAnsweredAllQuestions}
+                                            className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            Start room matching
+                                        </button>
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground">
+                                            Pick an answer to move forward.
+                                        </p>
+                                    )}
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 ) : (
                     <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
@@ -281,6 +428,14 @@ export default function SeekerDashboard() {
                                                 </p>
                                             </div>
 
+                                            <p className="text-sm leading-6 text-muted-foreground">
+                                                {currentRoom.description}
+                                            </p>
+
+                                            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                                                Hosted by {currentRoom.ownerName}
+                                            </p>
+
                                             <div className="flex flex-wrap gap-2">
                                                 {currentRoom.tags.map((tag) => (
                                                     <span
@@ -294,7 +449,7 @@ export default function SeekerDashboard() {
                                         </div>
                                     </div>
 
-                                    <div className="mt-4 grid grid-cols-2 gap-3">
+                                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
                                         <button
                                             type="button"
                                             onClick={handlePass}
@@ -303,6 +458,12 @@ export default function SeekerDashboard() {
                                             <X className="size-4" />
                                             Left (Pass)
                                         </button>
+                                        <Link
+                                            href={tenant.rooms.show.url(currentRoom.id)}
+                                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-sidebar-border/70 bg-white px-4 py-3 text-sm font-semibold transition hover:border-primary/40 hover:bg-primary/5 dark:border-sidebar-border dark:bg-sidebar"
+                                        >
+                                            View details
+                                        </Link>
                                         <button
                                             type="button"
                                             onClick={handleLike}
@@ -342,19 +503,24 @@ export default function SeekerDashboard() {
                                     {favoriteRooms.map((room) => (
                                         <li
                                             key={room.id}
-                                            className="flex items-center gap-3 rounded-lg border border-sidebar-border/70 p-2 dark:border-sidebar-border"
+                                            className="rounded-lg border border-sidebar-border/70 p-2 dark:border-sidebar-border"
                                         >
-                                            <img
-                                                src={room.image}
-                                                alt={room.title}
-                                                className="h-12 w-14 rounded-md object-cover"
-                                            />
-                                            <div>
-                                                <p className="text-sm font-semibold">{room.title}</p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {room.city} • {room.pricePerNight}
-                                                </p>
-                                            </div>
+                                            <Link
+                                                href={tenant.rooms.show.url(room.id)}
+                                                className="flex items-center gap-3"
+                                            >
+                                                <img
+                                                    src={room.image}
+                                                    alt={room.title}
+                                                    className="h-12 w-14 rounded-md object-cover"
+                                                />
+                                                <div>
+                                                    <p className="text-sm font-semibold">{room.title}</p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {room.city} • {room.pricePerNight}
+                                                    </p>
+                                                </div>
+                                            </Link>
                                         </li>
                                     ))}
                                 </ul>
@@ -374,8 +540,8 @@ export default function SeekerDashboard() {
 SeekerDashboard.layout = {
     breadcrumbs: [
         {
-            title: 'Seeker Dashboard',
-            href: seeker(),
+            title: 'Tenant Dashboard',
+            href: tenant(),
         },
     ],
 };

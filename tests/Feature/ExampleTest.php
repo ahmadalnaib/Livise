@@ -6,7 +6,7 @@ test('returns a successful response', function () {
     $response->assertOk();
 });
 
-test('seeker and tenant welcome pages return successful responses', function () {
-    $this->get(route('welcome.seeker'))->assertOk();
+test('tenant and landlord welcome pages return successful responses', function () {
     $this->get(route('welcome.tenant'))->assertOk();
+    $this->get(route('welcome.landlord'))->assertOk();
 });
