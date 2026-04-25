@@ -4,6 +4,7 @@ use App\Http\Controllers\Dashboard\AdminBookingController;
 use App\Http\Controllers\Dashboard\AdminDashboardController;
 use App\Http\Controllers\Dashboard\LandlordDashboardController;
 use App\Http\Controllers\Dashboard\LandlordRequestController;
+use App\Http\Controllers\Dashboard\RatingController;
 use App\Http\Controllers\Dashboard\SeekerDashboardController;
 use App\Http\Controllers\Dashboard\SeekerRoomController;
 use App\Http\Controllers\LandlordListingController;
@@ -24,7 +25,7 @@ Route::get('/welcome/tenant', function (Request $request) {
         ->latest('id')
         ->take(6)
         ->get()
-        ->map(fn(Room $room): array => [
+        ->map(fn (Room $room): array => [
             'id' => $room->id,
             'title' => $room->title,
             'city' => (string) $room->city?->name,
@@ -144,9 +145,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('role:landlord')
         ->name('dashboard.landlord.listings.edit');
 
+    // Rating routes
+    Route::post('dashboard/ratings', [RatingController::class, 'store'])
+        ->middleware('auth')
+        ->name('dashboard.ratings.store');
+
     Route::patch('landlord/listings/{room}', [LandlordListingController::class, 'update'])
         ->middleware('role:landlord')
         ->name('landlord.listings.update');
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

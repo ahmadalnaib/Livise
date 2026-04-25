@@ -64,4 +64,19 @@ class User extends Authenticatable
     {
         return $this->hasMany(BookingRequest::class, 'approved_by');
     }
+
+    public function ratingsGiven(): HasMany
+    {
+        return $this->hasMany(Rating::class, 'rater_id');
+    }
+
+    public function ratingsReceived(): HasMany
+    {
+        return $this->hasMany(Rating::class, 'rated_id');
+    }
+
+    public function averageRating(): float
+    {
+        return (float) $this->ratingsReceived()->avg('rating') ?? 0;
+    }
 }

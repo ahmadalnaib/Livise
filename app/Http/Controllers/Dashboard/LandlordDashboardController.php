@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Models\Rating;
+use App\Models\Rental;
 use App\Models\Room;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -25,6 +27,41 @@ class LandlordDashboardController extends Controller
             default => $allListings,
         };
 
+        // Get ratings received by landlord
+        $ratingsReceived = $landlord->ratingsReceived()
+            ->with('rater')
+            ->latest()
+            ->take(10)
+            ->get()
+            ->map(fn (Rating $rating): array => [
+                'id' => $rating->id,
+                'rater_name' => $rating->rater->name,
+                'rating' => $rating->rating,
+                'comment' => $rating->comment,
+                'type' => $rating->type,
+                'created_at' => $rating->created_at->toISOString(),
+            ]);
+
+        // Get tenants who have rented from this landlord (for rating)
+        $tenantsRated = Rating::where('rater_id', $landlord->id)
+            ->where('type', 'landlord_to_tenant')
+            ->pluck('rated_id')
+            ->toArray();
+
+        $recentTenants = Rental::whereHas('room', fn ($query) => $query->where('owner_id', $landlord->id))
+            ->with('renter')
+            ->latest()
+            ->take(10)
+            ->get()
+            ->unique('renter_id')
+            ->map(fn ($rental): array => [
+                'id' => $rental->renter->id,
+                'name' => $rental->renter->name,
+                'already_rated' => in_array($rental->renter->id, $tenantsRated),
+            ])
+            ->values()
+            ->all();
+
         return Inertia::render('dashboard/tenant', [
             'activeFilter' => in_array($statusFilter, $allowedFilters, true) ? $statusFilter : 'all',
             'stats' => [
@@ -33,7 +70,11 @@ class LandlordDashboardController extends Controller
                 'confirmedListings' => $allListings->where('status', 'confirmed')->count(),
                 'estimatedRevenue' => $allListings->sum(fn (Room $room): float => (float) $room->price_per_night),
                 'withPhotos' => $allListings->filter(fn (Room $room): bool => $room->images->isNotEmpty())->count(),
+                'averageRating' => round($landlord->averageRating(), 1),
+                'totalRatings' => $landlord->ratingsReceived()->count(),
             ],
+            'ratingsReceived' => $ratingsReceived,
+            'recentTenants' => $recentTenants,
             'listings' => $listings->map(fn (Room $room): array => [
                 'id' => $room->id,
                 'status' => $room->status,

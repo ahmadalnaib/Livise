@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Models\Rating;
 use App\Models\Room;
 use App\Models\SeekerSession;
 use Illuminate\Http\RedirectResponse;
@@ -23,7 +24,7 @@ class SeekerDashboardController extends Controller
             ->get();
 
         $roomCards = $rooms
-            ->map(fn(Room $room): array => $this->roomCard($room))
+            ->map(fn (Room $room): array => $this->roomCard($room))
             ->all();
         $availableRoomIds = $rooms->modelKeys();
         $likedRoomIds = collect($session->liked_room_ids ?? [])->intersect($availableRoomIds)->values()->all();
@@ -39,7 +40,7 @@ class SeekerDashboardController extends Controller
                 'questionnaireCompleted' => $session->questionnaire_completed,
             ],
             'favoriteRooms' => collect($roomCards)
-                ->filter(fn(array $room): bool => in_array($room['id'], $likedRoomIds, true))
+                ->filter(fn (array $room): bool => in_array($room['id'], $likedRoomIds, true))
                 ->values()
                 ->all(),
         ]);
@@ -47,22 +48,56 @@ class SeekerDashboardController extends Controller
 
     public function rentedRooms(Request $request): Response
     {
-        $rentedRooms = $request->user()->rentals()
+        $tenant = $request->user();
+        $rentedRooms = $tenant->rentals()
             ->with(['room.city:id,name', 'room.owner:id,name'])
             ->latest('id')
             ->get()
-            ->filter(fn($rental): bool => $rental->room !== null)
-            ->map(fn($rental): array => [
+            ->filter(fn ($rental): bool => $rental->room !== null)
+            ->map(fn ($rental): array => [
                 ...$this->roomCard($rental->room),
                 'rentalId' => $rental->id,
                 'startsAt' => $rental->starts_at->toDateString(),
                 'endsAt' => $rental->ends_at->toDateString(),
+                'landlordId' => $rental->room->owner_id,
+                'landlordName' => $rental->room->owner->name,
             ])
             ->values()
             ->all();
 
+        // Get landlords that tenant has already rated
+        $landlordsRated = Rating::where('rater_id', $tenant->id)
+            ->where('type', 'tenant_to_landlord')
+            ->pluck('rated_id')
+            ->toArray();
+
+        // Add already_rated flag to each rented room
+        $rentedRooms = array_map(function ($room) use ($landlordsRated) {
+            $room['landlordAlreadyRated'] = in_array($room['landlordId'], $landlordsRated);
+
+            return $room;
+        }, $rentedRooms);
+
+        // Get ratings received by tenant
+        $ratingsReceived = $tenant->ratingsReceived()
+            ->with('rater')
+            ->latest()
+            ->take(10)
+            ->get()
+            ->map(fn (Rating $rating): array => [
+                'id' => $rating->id,
+                'rater_name' => $rating->rater->name,
+                'rating' => $rating->rating,
+                'comment' => $rating->comment,
+                'type' => $rating->type,
+                'created_at' => $rating->created_at->toISOString(),
+            ]);
+
         return Inertia::render('dashboard/seeker-rented-rooms', [
             'rentedRooms' => $rentedRooms,
+            'ratingsReceived' => $ratingsReceived,
+            'averageRating' => round($tenant->averageRating(), 1),
+            'totalRatings' => $tenant->ratingsReceived()->count(),
         ]);
     }
 
@@ -100,10 +135,10 @@ class SeekerDashboardController extends Controller
 
         if ($validated['direction'] === 'right') {
             $likedRoomIds = $likedRoomIds->push($validated['roomId'])->unique()->values();
-            $passedRoomIds = $passedRoomIds->reject(fn(int $roomId): bool => $roomId === $validated['roomId'])->values();
+            $passedRoomIds = $passedRoomIds->reject(fn (int $roomId): bool => $roomId === $validated['roomId'])->values();
         } else {
             $passedRoomIds = $passedRoomIds->push($validated['roomId'])->unique()->values();
-            $likedRoomIds = $likedRoomIds->reject(fn(int $roomId): bool => $roomId === $validated['roomId'])->values();
+            $likedRoomIds = $likedRoomIds->reject(fn (int $roomId): bool => $roomId === $validated['roomId'])->values();
         }
 
         $session->update([
