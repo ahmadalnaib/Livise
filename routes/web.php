@@ -3,6 +3,7 @@
 use App\Http\Controllers\Dashboard\AdminBookingController;
 use App\Http\Controllers\Dashboard\AdminDashboardController;
 use App\Http\Controllers\Dashboard\LandlordDashboardController;
+use App\Http\Controllers\Dashboard\LandlordRequestController;
 use App\Http\Controllers\Dashboard\SeekerDashboardController;
 use App\Http\Controllers\Dashboard\SeekerRoomController;
 use App\Http\Controllers\LandlordListingController;
@@ -50,6 +51,17 @@ Route::get('/welcome/tenant', function (Request $request) {
 })->name('welcome.tenant');
 
 Route::get('/welcome/landlord', LandlordWelcomeController::class)->name('welcome.landlord');
+
+Route::post('/landlord-request', [LandlordRequestController::class, 'store'])
+    ->name('landlord-request.store');
+
+Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
+    Route::get('/dashboard/admin/landlord-requests', [LandlordRequestController::class, 'index'])
+        ->name('dashboard.admin.landlord-requests');
+
+    Route::patch('/dashboard/admin/landlord-requests/{landlordRequest}', [LandlordRequestController::class, 'updateStatus'])
+        ->name('dashboard.admin.landlord-requests.update-status');
+});
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function (Request $request) {
