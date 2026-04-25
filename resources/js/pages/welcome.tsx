@@ -46,25 +46,25 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
             {showSeniorModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-                    <div className="relative z-10 w-full max-w-2xl rounded-3xl bg-white dark:bg-stone-900 shadow-2xl">
-                        <div className="p-8 text-center">
-                            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
-                                <Home className="size-10" />
+                    <div className="relative z-10 w-full max-w-lg max-h-[70vh] overflow-y-auto rounded-3xl bg-white dark:bg-stone-900 shadow-2xl">
+                        <div className="p-5 text-center">
+                            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
+                                <Home className="size-8" />
                             </div>
-                            <h2 className="text-3xl font-bold text-stone-900 dark:text-white">
+                            <h2 className="text-2xl font-bold text-stone-900 dark:text-white">
                                 Do You Have a Room to Rent?
                             </h2>
-                            <p className="mt-4 text-lg text-stone-600 dark:text-stone-400">
-                                LivingSpace helps you find great tenants for your room. We make it easy to list and manage your rental.
+                            <p className="mt-2 text-base text-stone-600 dark:text-stone-400">
+                                LivingSpace helps you find great tenants for your room.
                             </p>
 
                             {!showForm ? (
                                 <div className="mt-8 grid gap-4">
                                     <button
                                         onClick={() => setShowForm(true)}
-                                        className="flex items-center justify-center gap-3 rounded-xl bg-green-600 px-6 py-4 text-lg font-semibold text-white transition hover:bg-green-700 hover:scale-105"
+                                        className="flex items-center justify-center gap-2 rounded-xl bg-green-600 px-5 py-3 text-base font-semibold text-white transition hover:bg-green-700"
                                     >
-                                        <Home className="size-6" />
+                                        <Home className="size-5" />
                                         Yes, I want to list my room
                                     </button>
 
@@ -76,8 +76,8 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                                     </button>
                                 </div>
                             ) : (
-                                <form onSubmit={handleSubmit} className="mt-8 text-left">
-                                    <div className="grid gap-4 sm:grid-cols-2">
+                                <form onSubmit={handleSubmit} className="mt-4 text-left">
+                                    <div className="grid gap-3 sm:grid-cols-2">
                                         <div className="sm:col-span-2">
                                             <label className="block text-sm font-medium text-stone-700 dark:text-stone-300">Your Name *</label>
                                             <input
@@ -85,7 +85,7 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                                                 required
                                                 value={form.data.name}
                                                 onChange={(e) => form.setData('name', e.target.value)}
-                                                className="mt-1 w-full rounded-lg border border-stone-300 px-4 py-3 dark:border-stone-600 dark:bg-stone-800"
+                                                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 dark:border-stone-600 dark:bg-stone-800"
                                                 placeholder="Enter your name"
                                             />
                                         </div>
@@ -96,7 +96,7 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                                                 required
                                                 value={form.data.phone}
                                                 onChange={(e) => form.setData('phone', e.target.value)}
-                                                className="mt-1 w-full rounded-lg border border-stone-300 px-4 py-3 dark:border-stone-600 dark:bg-stone-800"
+                                                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 dark:border-stone-600 dark:bg-stone-800"
                                                 placeholder="+49 123 456 789"
                                             />
                                         </div>
@@ -106,7 +106,7 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                                                 type="email"
                                                 value={form.data.email}
                                                 onChange={(e) => form.setData('email', e.target.value)}
-                                                className="mt-1 w-full rounded-lg border border-stone-300 px-4 py-3 dark:border-stone-600 dark:bg-stone-800"
+                                                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 dark:border-stone-600 dark:bg-stone-800"
                                                 placeholder="your@email.com"
                                             />
                                         </div>
@@ -116,7 +116,7 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                                                 type="text"
                                                 value={form.data.city}
                                                 onChange={(e) => form.setData('city', e.target.value)}
-                                                className="mt-1 w-full rounded-lg border border-stone-300 px-4 py-3 dark:border-stone-600 dark:bg-stone-800"
+                                                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 dark:border-stone-600 dark:bg-stone-800"
                                                 placeholder="Berlin"
                                             />
                                         </div>
@@ -126,7 +126,7 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                                                 type="text"
                                                 value={form.data.address}
                                                 onChange={(e) => form.setData('address', e.target.value)}
-                                                className="mt-1 w-full rounded-lg border border-stone-300 px-4 py-3 dark:border-stone-600 dark:bg-stone-800"
+                                                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 dark:border-stone-600 dark:bg-stone-800"
                                                 placeholder="Your room address"
                                             />
                                         </div>
@@ -135,13 +135,13 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                                             <textarea
                                                 value={form.data.notes}
                                                 onChange={(e) => form.setData('notes', e.target.value)}
-                                                rows={3}
-                                                className="mt-1 w-full rounded-lg border border-stone-300 px-4 py-3 dark:border-stone-600 dark:bg-stone-800"
+                                                rows={2}
+                                                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 dark:border-stone-600 dark:bg-stone-800"
                                                 placeholder="Tell us about your room..."
                                             />
                                         </div>
                                     </div>
-                                    <div className="mt-6 flex gap-3">
+                                    <div className="mt-4 flex gap-3">
                                         <button
                                             type="submit"
                                             disabled={form.processing}
@@ -224,8 +224,8 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
 
                     {/* Features Section */}
                     <div className="mx-auto max-w-6xl pb-20">
-                        <div className="grid gap-8 md:grid-cols-3">
-                            <div className="rounded-2xl border border-black/8 bg-white/50 p-8 dark:border-white/10 dark:bg-white/6">
+                        <div className="grid gap-6 md:grid-cols-3">
+                            <div className="rounded-2xl border border-black/8 bg-white/50 p-6 dark:border-white/10 dark:bg-white/6">
                                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
                                     <Zap className="size-6" />
                                 </div>
@@ -235,7 +235,7 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                                 </p>
                             </div>
 
-                            <div className="rounded-2xl border border-black/8 bg-white/50 p-8 dark:border-white/10 dark:bg-white/6">
+                            <div className="rounded-2xl border border-black/8 bg-white/50 p-6 dark:border-white/10 dark:bg-white/6">
                                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
                                     <CheckCircle2 className="size-6" />
                                 </div>
@@ -245,7 +245,7 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                                 </p>
                             </div>
 
-                            <div className="rounded-2xl border border-black/8 bg-white/50 p-8 dark:border-white/10 dark:bg-white/6">
+                            <div className="rounded-2xl border border-black/8 bg-white/50 p-6 dark:border-white/10 dark:bg-white/6">
                                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
                                     <ArrowRight className="size-6" />
                                 </div>
@@ -271,7 +271,7 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                             </p>
                         </div>
 
-                        <div className="grid gap-8 md:grid-cols-2">
+                        <div className="grid gap-6 md:grid-cols-2">
                             <Link
                                 href={tenant()}
                                 className="group relative overflow-hidden rounded-3xl border-2 border-black/8 bg-gradient-to-br from-white/80 to-white/40 p-10 shadow-lg transition hover:border-primary hover:-translate-y-2 hover:shadow-2xl dark:border-white/10 dark:from-white/8 dark:to-white/4"
@@ -353,8 +353,8 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                             </p>
                         </div>
 
-                        <div className="grid gap-8 lg:grid-cols-2">
-                            <section className="relative overflow-hidden rounded-3xl border border-blue-500/20 bg-white/70 p-6 shadow-lg backdrop-blur-sm dark:border-blue-400/20 dark:bg-white/6 sm:p-8">
+                        <div className="grid gap-6 lg:grid-cols-2">
+                            <section className="relative overflow-hidden rounded-3xl border border-blue-500/20 bg-white/70 p-6 shadow-lg backdrop-blur-sm dark:border-blue-400/20 dark:bg-white/6 sm:p-6">
                                 <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-blue-300/20 blur-3xl dark:bg-blue-500/20" />
                                 <div className="relative">
                                     <h3 className="text-2xl font-bold text-stone-900 dark:text-white">For Tenants</h3>
@@ -382,7 +382,7 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                                 </div>
                             </section>
 
-                            <section className="relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-white/70 p-6 shadow-lg backdrop-blur-sm dark:border-emerald-400/20 dark:bg-white/6 sm:p-8">
+                            <section className="relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-white/70 p-6 shadow-lg backdrop-blur-sm dark:border-emerald-400/20 dark:bg-white/6 sm:p-6">
                                 <div className="pointer-events-none absolute -left-16 -top-16 h-48 w-48 rounded-full bg-emerald-300/20 blur-3xl dark:bg-emerald-500/20" />
                                 <div className="relative">
                                     <h3 className="text-2xl font-bold text-stone-900 dark:text-white">For Landlords</h3>
@@ -426,7 +426,7 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                             </p>
                         </div>
 
-                        <div className="grid gap-8 md:grid-cols-3">
+                        <div className="grid gap-6 md:grid-cols-3">
                             {[
                                 {
                                     quote: "Found my perfect apartment in just 2 days! The process was super smooth and the landlord was very responsive.",
@@ -449,7 +449,7 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                             ].map((testimonial, idx) => (
                                 <div
                                     key={idx}
-                                    className="rounded-2xl border border-black/8 bg-white/50 p-8 dark:border-white/10 dark:bg-white/6"
+                                    className="rounded-2xl border border-black/8 bg-white/50 p-6 dark:border-white/10 dark:bg-white/6"
                                 >
                                     <div className="mb-4 flex gap-1">
                                         {[...Array(testimonial.rating)].map((_, i) => (
