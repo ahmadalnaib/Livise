@@ -1,17 +1,72 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import L from 'leaflet';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { ArrowLeft, ArrowRight, BedDouble, Heart, MapPinned, RotateCcw, Sparkles } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import { tenant } from '@/routes/dashboard';
+import 'leaflet/dist/leaflet.css';
 
 type RoomCard = {
     id: number;
     title: string;
     city: string;
     pricePerNight: string;
+    pricePerNightValue: number;
+    size: 'small' | 'medium' | 'large';
     tags: string[];
     image: string;
     description: string;
     ownerName: string;
+};
+
+const mapIcon = L.icon({
+    iconRetinaUrl: markerIcon2x,
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41],
+});
+
+const germanMajorCities = [
+    'Berlin',
+    'Hamburg',
+    'Munich',
+    'Cologne',
+    'Frankfurt',
+    'Stuttgart',
+    'Dusseldorf',
+    'Dortmund',
+    'Essen',
+    'Leipzig',
+    'Bremen',
+    'Dresden',
+    'Hannover',
+    'Nuremberg',
+];
+
+const cityCoordinates: Record<string, [number, number]> = {
+    berlin: [52.52, 13.405],
+    hamburg: [53.5511, 9.9937],
+    munich: [48.1374, 11.5755],
+    cologne: [50.9375, 6.9603],
+    frankfurt: [50.1109, 8.6821],
+    stuttgart: [48.7758, 9.1829],
+    dusseldorf: [51.2277, 6.7735],
+    dortmund: [51.5136, 7.4653],
+    essen: [51.4556, 7.0116],
+    leipzig: [51.3397, 12.3731],
+    bremen: [53.0793, 8.8017],
+    dresden: [51.0504, 13.7373],
+    hannover: [52.3759, 9.732],
+    nuremberg: [49.4521, 11.0767],
+    amman: [31.9539, 35.9106],
+    aqaba: [29.5321, 35.0063],
+    irbid: [32.5569, 35.85],
 };
 
 type PreferenceAnswers = {
@@ -126,6 +181,62 @@ export default function SeekerDashboard() {
     const isQuestionnaireCompleted = seekerSession.questionnaireCompleted;
     const hasAnsweredAllQuestions = Object.values(answers).every(Boolean);
     const currentQuestion = questions[currentQuestionIndex];
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedSize, setSelectedSize] = useState<'all' | 'small' | 'medium' | 'large'>('all');
+    const [selectedCity, setSelectedCity] = useState<'all' | 'germany-major' | string>('all');
+    const [maxPrice, setMaxPrice] = useState<number>(Math.max(...rooms.map((room) => room.pricePerNightValue), 0));
+
+    const germanCitySet = useMemo(
+        () => new Set(germanMajorCities.map((city) => city.toLowerCase())),
+        [],
+    );
+
+    const cityOptions = useMemo(
+        () => Array.from(new Set(rooms.map((room) => room.city).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
+        [rooms],
+    );
+
+    const filteredRooms = useMemo(() => {
+        const normalizedSearch = searchTerm.trim().toLowerCase();
+
+        return rooms.filter((room) => {
+            const normalizedCity = room.city.toLowerCase();
+            const matchesSearch =
+                normalizedSearch === '' ||
+                room.title.toLowerCase().includes(normalizedSearch) ||
+                normalizedCity.includes(normalizedSearch) ||
+                room.description.toLowerCase().includes(normalizedSearch);
+
+            const matchesSize = selectedSize === 'all' || room.size === selectedSize;
+
+            const matchesCity =
+                selectedCity === 'all'
+                    ? true
+                    : selectedCity === 'germany-major'
+                        ? germanCitySet.has(normalizedCity)
+                        : normalizedCity === selectedCity.toLowerCase();
+
+            const matchesPrice = room.pricePerNightValue <= maxPrice;
+
+            return matchesSearch && matchesSize && matchesCity && matchesPrice;
+        });
+    }, [rooms, searchTerm, selectedSize, selectedCity, maxPrice, germanCitySet]);
+
+    const mapRooms = useMemo(
+        () => filteredRooms.filter((room) => cityCoordinates[room.city.toLowerCase()] !== undefined),
+        [filteredRooms],
+    );
+
+    const mapCenter: [number, number] = mapRooms.length > 0
+        ? cityCoordinates[mapRooms[0].city.toLowerCase()]
+        : [51.1657, 10.4515];
+
+    const resetFilters = (): void => {
+        setSearchTerm('');
+        setSelectedSize('all');
+        setSelectedCity('all');
+        setMaxPrice(Math.max(...rooms.map((room) => room.pricePerNightValue), 0));
+    };
 
     const handleAnswerChange = (field: keyof PreferenceAnswers, value: string): void => {
         setAnswers((previousAnswers) => ({
@@ -205,7 +316,7 @@ export default function SeekerDashboard() {
                     <div className="rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border dark:bg-sidebar">
                         <MapPinned className="mb-2 size-5 text-primary" />
                         <p className="text-xs text-muted-foreground">Available rooms</p>
-                        <p className="text-2xl font-semibold">{Math.max(remainingCount, 0)}</p>
+                        <p className="text-2xl font-semibold">{isQuestionnaireCompleted ? filteredRooms.length : Math.max(remainingCount, 0)}</p>
                     </div>
                     <div className="rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border dark:bg-sidebar">
                         <BedDouble className="mb-2 size-5 text-primary" />
@@ -371,9 +482,90 @@ export default function SeekerDashboard() {
                                 </button>
                             </div>
 
-                            {rooms.length > 0 ? (
+                            <div className="mb-4 rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border">
+                                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                                    <input
+                                        type="text"
+                                        value={searchTerm}
+                                        onChange={(event) => setSearchTerm(event.target.value)}
+                                        placeholder="Search room or city"
+                                        className="rounded-lg border border-sidebar-border/70 bg-background px-3 py-2 text-sm dark:border-sidebar-border"
+                                    />
+
+                                    <select
+                                        value={selectedCity}
+                                        onChange={(event) => setSelectedCity(event.target.value)}
+                                        className="rounded-lg border border-sidebar-border/70 bg-background px-3 py-2 text-sm dark:border-sidebar-border"
+                                    >
+                                        <option value="all">All cities</option>
+                                        <option value="germany-major">All Germany big cities</option>
+                                        {cityOptions.map((city) => (
+                                            <option key={city} value={city}>
+                                                {city}
+                                            </option>
+                                        ))}
+                                    </select>
+
+                                    <select
+                                        value={selectedSize}
+                                        onChange={(event) => setSelectedSize(event.target.value as 'all' | 'small' | 'medium' | 'large')}
+                                        className="rounded-lg border border-sidebar-border/70 bg-background px-3 py-2 text-sm dark:border-sidebar-border"
+                                    >
+                                        <option value="all">All sizes</option>
+                                        <option value="small">Small</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="large">Large</option>
+                                    </select>
+
+                                    <button
+                                        type="button"
+                                        onClick={resetFilters}
+                                        className="rounded-lg border border-sidebar-border/70 px-3 py-2 text-sm font-semibold transition hover:border-primary/40 hover:bg-primary/5 dark:border-sidebar-border"
+                                    >
+                                        Reset filters
+                                    </button>
+                                </div>
+
+                                <div className="mt-3">
+                                    <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                        Max price: ${maxPrice.toFixed(0)}
+                                    </label>
+                                    <input
+                                        type="range"
+                                        min={0}
+                                        max={Math.max(...rooms.map((room) => room.pricePerNightValue), 0)}
+                                        value={maxPrice}
+                                        onChange={(event) => setMaxPrice(Number(event.target.value))}
+                                        className="mt-2 w-full"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="mb-4 overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                                <MapContainer center={mapCenter} zoom={5} className="h-72 w-full" scrollWheelZoom>
+                                    <TileLayer
+                                        attribution="&copy; OpenStreetMap contributors"
+                                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                    />
+                                    {mapRooms.map((room) => {
+                                        const coordinates = cityCoordinates[room.city.toLowerCase()];
+
+                                        return (
+                                            <Marker key={room.id} position={coordinates} icon={mapIcon}>
+                                                <Popup>
+                                                    <p className="font-semibold">{room.title}</p>
+                                                    <p>{room.city}</p>
+                                                    <p>{room.pricePerNight}</p>
+                                                </Popup>
+                                            </Marker>
+                                        );
+                                    })}
+                                </MapContainer>
+                            </div>
+
+                            {filteredRooms.length > 0 ? (
                                 <div className="grid gap-4 sm:grid-cols-2">
-                                    {rooms.map((room) => {
+                                    {filteredRooms.map((room) => {
                                         const isFavorite = seekerSession.likedRoomIds.includes(room.id);
 
                                         return (
@@ -439,9 +631,9 @@ export default function SeekerDashboard() {
                                 </div>
                             ) : (
                                 <div className="rounded-2xl border border-dashed border-sidebar-border/80 p-8 text-center dark:border-sidebar-border">
-                                    <h3 className="text-xl font-semibold">No rooms found</h3>
+                                    <h3 className="text-xl font-semibold">No rooms match your filters</h3>
                                     <p className="mt-2 text-sm text-muted-foreground">
-                                        Seeded rooms will appear here when available.
+                                        Try widening city, size, or price filters.
                                     </p>
                                 </div>
                             )}

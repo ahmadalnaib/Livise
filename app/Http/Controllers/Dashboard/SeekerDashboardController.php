@@ -23,7 +23,7 @@ class SeekerDashboardController extends Controller
             ->get();
 
         $roomCards = $rooms
-            ->map(fn (Room $room): array => $this->roomCard($room))
+            ->map(fn(Room $room): array => $this->roomCard($room))
             ->all();
         $availableRoomIds = $rooms->modelKeys();
         $likedRoomIds = collect($session->liked_room_ids ?? [])->intersect($availableRoomIds)->values()->all();
@@ -39,7 +39,7 @@ class SeekerDashboardController extends Controller
                 'questionnaireCompleted' => $session->questionnaire_completed,
             ],
             'favoriteRooms' => collect($roomCards)
-                ->filter(fn (array $room): bool => in_array($room['id'], $likedRoomIds, true))
+                ->filter(fn(array $room): bool => in_array($room['id'], $likedRoomIds, true))
                 ->values()
                 ->all(),
         ]);
@@ -51,8 +51,8 @@ class SeekerDashboardController extends Controller
             ->with(['room.city:id,name', 'room.owner:id,name'])
             ->latest('id')
             ->get()
-            ->filter(fn ($rental): bool => $rental->room !== null)
-            ->map(fn ($rental): array => [
+            ->filter(fn($rental): bool => $rental->room !== null)
+            ->map(fn($rental): array => [
                 ...$this->roomCard($rental->room),
                 'rentalId' => $rental->id,
                 'startsAt' => $rental->starts_at->toDateString(),
@@ -100,10 +100,10 @@ class SeekerDashboardController extends Controller
 
         if ($validated['direction'] === 'right') {
             $likedRoomIds = $likedRoomIds->push($validated['roomId'])->unique()->values();
-            $passedRoomIds = $passedRoomIds->reject(fn (int $roomId): bool => $roomId === $validated['roomId'])->values();
+            $passedRoomIds = $passedRoomIds->reject(fn(int $roomId): bool => $roomId === $validated['roomId'])->values();
         } else {
             $passedRoomIds = $passedRoomIds->push($validated['roomId'])->unique()->values();
-            $likedRoomIds = $likedRoomIds->reject(fn (int $roomId): bool => $roomId === $validated['roomId'])->values();
+            $likedRoomIds = $likedRoomIds->reject(fn(int $roomId): bool => $roomId === $validated['roomId'])->values();
         }
 
         $session->update([
@@ -146,7 +146,7 @@ class SeekerDashboardController extends Controller
     }
 
     /**
-     * @return array{id: int, title: string, city: string, pricePerNight: string, tags: list<string>, image: string, description: string, ownerName: string}
+     * @return array{id: int, title: string, city: string, pricePerNight: string, pricePerNightValue: float, size: string, tags: list<string>, image: string, description: string, ownerName: string}
      */
     private function roomCard(Room $room): array
     {
@@ -155,10 +155,25 @@ class SeekerDashboardController extends Controller
             'title' => $room->title,
             'city' => (string) $room->city?->name,
             'pricePerNight' => $room->pricePerNightLabel(),
+            'pricePerNightValue' => (float) $room->price_per_night,
+            'size' => $this->roomSize($room),
             'tags' => $room->catalogHighlights(),
             'image' => $room->catalogImage(),
             'description' => (string) $room->description,
             'ownerName' => (string) $room->owner?->name,
         ];
+    }
+
+    private function roomSize(Room $room): string
+    {
+        if ($room->price_per_night <= 80) {
+            return 'small';
+        }
+
+        if ($room->price_per_night <= 150) {
+            return 'medium';
+        }
+
+        return 'large';
     }
 }
