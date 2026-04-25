@@ -71,7 +71,10 @@ export default function SeekerWelcome({ canRegister = true }: SeekerProps) {
                                     <ArrowRight className="size-4" />
                                 </Link>
                                 {canRegister && !auth.user ? (
-                                    <Link href={register()} className="inline-flex items-center rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold dark:border-white/10 dark:bg-white/6">
+                                    <Link
+                                        href={register({ query: { role: 'seeker' } })}
+                                        className="inline-flex items-center rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold dark:border-white/10 dark:bg-white/6"
+                                    >
                                         Create account
                                     </Link>
                                 ) : null}
