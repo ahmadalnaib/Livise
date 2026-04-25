@@ -9,11 +9,42 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['city_id', 'owner_id', 'title', 'description', 'price_per_night'])]
+#[Fillable([
+    'city_id',
+    'owner_id',
+    'title',
+    'description',
+    'price_per_night',
+    'listing_type',
+    'contact_first_name',
+    'contact_last_name',
+    'contact_email',
+    'size_label',
+    'facilities',
+])]
 class Room extends Model
 {
     /** @use HasFactory<RoomFactory> */
     use HasFactory;
+
+    public const LISTING_TYPES = [
+        'room',
+        'apartment',
+    ];
+
+    public const FACILITIES = [
+        'washing_machine',
+        'dishwasher',
+        'lift',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'facilities' => 'array',
+            'price_per_night' => 'decimal:2',
+        ];
+    }
 
     public function city(): BelongsTo
     {
@@ -33,6 +64,11 @@ class Room extends Model
     public function bookingRequests(): HasMany
     {
         return $this->hasMany(BookingRequest::class);
+    }
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(RoomImage::class)->orderBy('sort_order');
     }
 
     public function pricePerNightLabel(): string

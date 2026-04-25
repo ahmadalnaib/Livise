@@ -6,7 +6,7 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { ArrowLeft, ArrowRight, BedDouble, Heart, MapPinned, RotateCcw, Sparkles } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
-import { tenant } from '@/routes/dashboard';
+import dashboardRoutes from '@/routes/dashboard';
 import 'leaflet/dist/leaflet.css';
 
 type RoomCard = {
@@ -272,7 +272,7 @@ export default function SeekerDashboard() {
             return;
         }
 
-        router.post(tenant.preferences.store(), answers, {
+        router.post(dashboardRoutes.tenant.preferences.store(), answers, {
             preserveScroll: true,
             preserveState: false,
         });
@@ -284,7 +284,7 @@ export default function SeekerDashboard() {
         }
 
         router.post(
-            tenant.swipe.store(),
+            dashboardRoutes.tenant.swipe.store(),
             {
                 roomId,
                 direction: 'right',
@@ -297,7 +297,7 @@ export default function SeekerDashboard() {
     };
 
     const resetDeck = (): void => {
-        router.post(tenant.reset(), {}, {
+        router.post(dashboardRoutes.tenant.reset(), {}, {
             preserveScroll: true,
             preserveState: false,
         });
@@ -609,7 +609,7 @@ export default function SeekerDashboard() {
 
                                                     <div className="grid gap-2 pt-1 sm:grid-cols-2">
                                                         <Link
-                                                            href={tenant.rooms.show.url(room.id)}
+                                                            href={dashboardRoutes.tenant.rooms.show.url(room.id)}
                                                             className="inline-flex items-center justify-center rounded-lg border border-sidebar-border/70 px-3 py-2 text-sm font-semibold transition hover:border-primary/40 hover:bg-primary/5 dark:border-sidebar-border"
                                                         >
                                                             View details
@@ -639,45 +639,43 @@ export default function SeekerDashboard() {
                             )}
                         </div>
 
-                        <div>
-                            <div className="rounded-xl border border-sidebar-border/70 bg-white p-6 dark:border-sidebar-border dark:bg-sidebar">
-                                <h2 className="text-lg font-semibold">My Favorite Rooms Profile</h2>
-                                <p className="mt-2 text-sm text-muted-foreground">
-                                    Add favorite to keep the rooms you love in one place.
-                                </p>
+                        <div className="rounded-xl border border-sidebar-border/70 bg-white p-6 dark:border-sidebar-border dark:bg-sidebar">
+                            <h2 className="text-lg font-semibold">My Favorite Rooms Profile</h2>
+                            <p className="mt-2 text-sm text-muted-foreground">
+                                Add favorite to keep the rooms you love in one place.
+                            </p>
 
-                                {favoriteRooms.length > 0 ? (
-                                    <ul className="mt-4 space-y-3">
-                                        {favoriteRooms.map((room) => (
-                                            <li
-                                                key={room.id}
-                                                className="rounded-lg border border-sidebar-border/70 p-2 dark:border-sidebar-border"
+                            {favoriteRooms.length > 0 ? (
+                                <ul className="mt-4 space-y-3">
+                                    {favoriteRooms.map((room) => (
+                                        <li
+                                            key={room.id}
+                                            className="rounded-lg border border-sidebar-border/70 p-2 dark:border-sidebar-border"
+                                        >
+                                            <Link
+                                                href={dashboardRoutes.tenant.rooms.show.url(room.id)}
+                                                className="flex items-center gap-3"
                                             >
-                                                <Link
-                                                    href={tenant.rooms.show.url(room.id)}
-                                                    className="flex items-center gap-3"
-                                                >
-                                                    <img
-                                                        src={room.image}
-                                                        alt={room.title}
-                                                        className="h-12 w-14 rounded-md object-cover"
-                                                    />
-                                                    <div>
-                                                        <p className="text-sm font-semibold">{room.title}</p>
-                                                        <p className="text-xs text-muted-foreground">
-                                                            {room.city} • {room.pricePerNight}
-                                                        </p>
-                                                    </div>
-                                                </Link>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : (
-                                    <p className="mt-4 text-sm text-muted-foreground">
-                                        No favorite rooms yet. Tap Add favorite on any room.
-                                    </p>
-                                )}
-                            </div>
+                                                <img
+                                                    src={room.image}
+                                                    alt={room.title}
+                                                    className="h-12 w-14 rounded-md object-cover"
+                                                />
+                                                <div>
+                                                    <p className="text-sm font-semibold">{room.title}</p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {room.city} • {room.pricePerNight}
+                                                    </p>
+                                                </div>
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p className="mt-4 text-sm text-muted-foreground">
+                                    No favorite rooms yet. Tap Add favorite on any room.
+                                </p>
+                            )}
                         </div>
                     </div>
                 )}
@@ -690,7 +688,7 @@ SeekerDashboard.layout = {
     breadcrumbs: [
         {
             title: 'Tenant Dashboard',
-            href: tenant(),
+            href: dashboardRoutes.tenant(),
         },
     ],
 };

@@ -1,6 +1,6 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { CalendarDays, ChevronLeft, MapPinned, ShieldCheck, UserRound } from 'lucide-react';
-import { tenant } from '@/routes/dashboard';
+import dashboardRoutes from '@/routes/dashboard';
 
 type BookedRange = {
     id: number;
@@ -64,7 +64,7 @@ export default function SeekerRoomShow() {
 
     const submit = (event: React.FormEvent<HTMLFormElement>): void => {
         event.preventDefault();
-        form.post(tenant.rooms.rent.store(room.id), {
+        form.submit(dashboardRoutes.tenant.rooms.rent.store(room.id), {
             preserveScroll: true,
         });
     };
@@ -75,7 +75,7 @@ export default function SeekerRoomShow() {
             <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center justify-between gap-4">
                     <Link
-                        href={tenant.url()}
+                        href={dashboardRoutes.tenant.url()}
                         className="inline-flex items-center gap-2 rounded-full border border-sidebar-border/70 px-4 py-2 text-sm font-medium transition hover:border-primary/40 hover:bg-primary/5 dark:border-sidebar-border"
                     >
                         <ChevronLeft className="size-4" />
@@ -248,11 +248,11 @@ SeekerRoomShow.layout = {
     breadcrumbs: [
         {
             title: 'Tenant Dashboard',
-            href: tenant(),
+            href: dashboardRoutes.tenant(),
         },
         {
             title: 'Room Details',
-            href: tenant(),
+            href: dashboardRoutes.tenant(),
         },
     ],
 };

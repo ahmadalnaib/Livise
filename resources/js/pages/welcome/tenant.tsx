@@ -1,5 +1,21 @@
-import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowRight, BadgeDollarSign, Building2, CalendarCheck2, CheckCircle2, ImagePlus, Users } from 'lucide-react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { useEffect, useEffectEvent, useId, useRef, useState } from 'react';
+import { ArrowRight, Building2, CheckCircle2, ImagePlus, UploadCloud, X } from 'lucide-react';
+import { store } from '@/actions/App/Http/Controllers/LandlordListingController';
+import InputError from '@/components/input-error';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 import { dashboard, home, login, register } from '@/routes';
 
 const listingSteps = [
@@ -20,20 +36,96 @@ const listingSteps = [
     },
 ];
 
-type TenantProps = {
+type LandlordUser = {
+    id: number;
+    name: string;
+    email: string;
+    role?: string;
+} | null;
+
+type LandlordOption = {
+    value: string;
+    label: string;
+};
+
+type ExistingListing = {
+    id: number;
+    title: string;
+    listing_type: string | null;
+    size_label: string | null;
+    contact_email: string | null;
+    facilities: string[];
+    image_count: number;
+};
+
+type LandlordProps = {
     canRegister?: boolean;
+    isLandlordWorkspace?: boolean;
+    listingTypeOptions?: LandlordOption[];
+    facilityOptions?: LandlordOption[];
+    draftContact?: {
+        first_name: string;
+        last_name: string;
+        email: string;
+    };
+    existingListings?: ExistingListing[];
 };
 
 type PageProps = {
     auth: {
-        user: unknown | null;
+        user: LandlordUser;
     };
 };
 
-export default function TenantWelcome({ canRegister = true }: TenantProps) {
+type LandlordListingForm = {
+    listing_type: string;
+    contact_first_name: string;
+    contact_last_name: string;
+    contact_email: string;
+    size_label: string;
+    facilities: string[];
+    photos: File[];
+};
+
+type PhotoPreview = {
+    name: string;
+    url: string;
+};
+
+export default function TenantWelcome({
+    canRegister = true,
+    isLandlordWorkspace = false,
+    listingTypeOptions = [],
+    facilityOptions = [],
+    draftContact,
+    existingListings = [],
+}: LandlordProps) {
     const { auth } = usePage<PageProps>().props;
-    const primaryHref = auth.user ? dashboard() : login();
-    const primaryLabel = auth.user ? 'Manage listings' : 'Log in to list a room';
+
+    if (!isLandlordWorkspace) {
+        return <GuestTenantWelcome authUser={auth.user} canRegister={canRegister} />;
+    }
+
+    return (
+        <TenantWorkspace
+            authUser={auth.user}
+            draftContact={draftContact ?? { first_name: '', last_name: '', email: '' }}
+            listingTypeOptions={listingTypeOptions}
+            facilityOptions={facilityOptions}
+            existingListings={existingListings}
+        />
+    );
+}
+
+function GuestTenantWelcome({
+    authUser,
+    canRegister,
+}: {
+    authUser: LandlordUser;
+    canRegister: boolean;
+}) {
+    const primaryHref = authUser ? dashboard() : login();
+    const primaryLabel = authUser ? 'Manage listings' : 'Log in to list a room';
 
     return (
         <>
@@ -66,7 +158,7 @@ export default function TenantWelcome({ canRegister = true }: TenantProps) {
                                     {primaryLabel}
                                     <ArrowRight className="size-4" />
                                 </Link>
-                                {canRegister && !auth.user ? (
+                                {canRegister && !authUser ? (
                                     <Link
                                         href={register({ query: { role: 'landlord' } })}
                                         className="inline-flex items-center rounded-full border border-black/10 bg-white/80 px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-white/8"
@@ -184,6 +276,530 @@ export default function TenantWelcome({ canRegister = true }: TenantProps) {
                     </section>
                 </div>
             </div>
+        </>
+    );
+}
+
+TenantWelcome.layout = null;
+
+function TenantWorkspace({
+    authUser,
+    draftContact,
+    listingTypeOptions,
+    facilityOptions,
+    existingListings,
+}: {
+    authUser: LandlordUser;
+    draftContact: NonNullable<LandlordProps['draftContact']>;
+    listingTypeOptions: LandlordOption[];
+    facilityOptions: LandlordOption[];
+    existingListings: ExistingListing[];
+}) {
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [isDragActive, setIsDragActive] = useState(false);
+    const [photoPreviews, setPhotoPreviews] = useState<PhotoPreview[]>([]);
+    const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+    const [pendingNavigationUrl, setPendingNavigationUrl] = useState<string | null>(null);
+    const [pendingClose, setPendingClose] = useState(false);
+    const fileInputId = useId();
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const skipLeaveGuardRef = useRef(false);
+
+    const form = useForm<LandlordListingForm>({
+        listing_type: '',
+        contact_first_name: draftContact.first_name,
+        contact_last_name: draftContact.last_name,
+        contact_email: draftContact.email,
+        size_label: '',
+        facilities: [],
+        photos: [],
+    });
+
+    const hasUnsavedChanges = isFormOpen && (form.isDirty || form.data.photos.length > 0);
+    const sizeLabel = form.data.listing_type === 'apartment' ? 'Apartment size' : 'Room size';
+
+    useEffect(() => {
+        const nextPreviews = form.data.photos.map((photo) => ({
+            name: photo.name,
+            url: URL.createObjectURL(photo),
+        }));
+
+        setPhotoPreviews(nextPreviews);
+
+        return () => {
+            nextPreviews.forEach((preview) => URL.revokeObjectURL(preview.url));
+        };
+    }, [form.data.photos]);
+
+    const handleNativeLeavePrompt = useEffectEvent((event: BeforeUnloadEvent) => {
+        if (!hasUnsavedChanges || skipLeaveGuardRef.current) {
+            return;
+        }
+
+        event.preventDefault();
+        event.returnValue = '';
+    });
+
+    useEffect(() => {
+        window.addEventListener('beforeunload', handleNativeLeavePrompt);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleNativeLeavePrompt);
+        };
+    }, [handleNativeLeavePrompt]);
+
+    const handleInertiaBefore = useEffectEvent((event: CustomEvent<{ visit: { url: URL | string } }>) => {
+        if (!hasUnsavedChanges || skipLeaveGuardRef.current) {
+            return;
+        }
+
+        event.preventDefault();
+        setPendingNavigationUrl(event.detail.visit.url.toString());
+        setPendingClose(false);
+        setShowLeaveDialog(true);
+    });
+
+    useEffect(() => {
+        const removeListener = router.on('before', handleInertiaBefore);
+
+        return () => {
+            removeListener();
+        };
+    }, [handleInertiaBefore]);
+
+    function openCreateForm(): void {
+        setIsFormOpen(true);
+    }
+
+    function updatePhotos(nextPhotos: File[]): void {
+        form.setData('photos', nextPhotos);
+        form.clearErrors('photos');
+    }
+
+    function addPhotos(fileList: FileList | File[]): void {
+        const files = Array.from(fileList).filter((file) => file.type.startsWith('image/'));
+
+        if (files.length === 0) {
+            return;
+        }
+
+        updatePhotos([...form.data.photos, ...files].slice(0, 10));
+    }
+
+    function removePhoto(index: number): void {
+        updatePhotos(form.data.photos.filter((_, photoIndex) => photoIndex !== index));
+    }
+
+    function toggleFacility(optionValue: string, checked: boolean): void {
+        if (checked) {
+            form.setData('facilities', [...form.data.facilities, optionValue]);
+            return;
+        }
+
+        form.setData(
+            'facilities',
+            form.data.facilities.filter((facility) => facility !== optionValue),
+        );
+    }
+
+    function resetDraft(): void {
+        form.reset();
+        form.clearErrors();
+        updatePhotos([]);
+        setIsDragActive(false);
+    }
+
+    function requestCloseForm(): void {
+        if (!hasUnsavedChanges) {
+            resetDraft();
+            setIsFormOpen(false);
+            return;
+        }
+
+        setPendingNavigationUrl(null);
+        setPendingClose(true);
+        setShowLeaveDialog(true);
+    }
+
+    function confirmLeave(): void {
+        setShowLeaveDialog(false);
+        skipLeaveGuardRef.current = true;
+
+        if (pendingClose) {
+            resetDraft();
+            setIsFormOpen(false);
+            setPendingClose(false);
+            queueMicrotask(() => {
+                skipLeaveGuardRef.current = false;
+            });
+            return;
+        }
+
+        const nextUrl = pendingNavigationUrl;
+        setPendingNavigationUrl(null);
+
+        if (nextUrl) {
+            router.visit(nextUrl);
+        }
+
+        queueMicrotask(() => {
+            skipLeaveGuardRef.current = false;
+        });
+    }
+
+    function cancelLeave(): void {
+        setShowLeaveDialog(false);
+        setPendingNavigationUrl(null);
+        setPendingClose(false);
+    }
+
+    function submitListing(event: React.FormEvent<HTMLFormElement>): void {
+        event.preventDefault();
+
+        form.submit(store(), {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                resetDraft();
+                setIsFormOpen(false);
+            },
+        });
+    }
+
+    return (
+        <>
+            <Head title="Landlord Workspace" />
+
+            <div className="min-h-screen bg-[#f1ecdf] text-stone-900 dark:bg-[#101826] dark:text-stone-100">
+                <div className="mx-auto w-full max-w-7xl px-6 py-8 lg:px-8 lg:py-10">
+                    <header className="mb-8 flex items-center justify-between rounded-full border border-black/8 bg-white/80 px-4 py-3 dark:border-white/10 dark:bg-white/6">
+                        <div>
+                            <p className="text-sm font-semibold">Landlord workspace</p>
+                            <p className="text-xs text-stone-500 dark:text-stone-400">{authUser?.email}</p>
+                        </div>
+                        <Link href={home()} className="text-sm text-stone-600 underline-offset-4 hover:underline dark:text-stone-300">
+                            Switch role
+                        </Link>
+                    </header>
+
+                    <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+                        <div className="space-y-6">
+                            <div className="rounded-[2rem] bg-stone-900 p-7 text-white shadow-xl dark:bg-[#182233]">
+                                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/65">Create listing</p>
+                                <h1 className="mt-3 text-4xl leading-tight font-semibold sm:text-5xl" style={{ fontFamily: '"Fraunces", serif' }}>
+                                    Build a room profile seekers can trust.
+                                </h1>
+                                <p className="mt-4 max-w-xl text-sm leading-7 text-white/78">
+                                    Open the form, add landlord contact details, mark the available facilities, and upload photos before you publish.
+                                </p>
+                                <div className="mt-6 flex flex-wrap gap-3">
+                                    <Button
+                                        type="button"
+                                        size="lg"
+                                        className="rounded-full bg-white px-6 text-stone-900 hover:bg-white/90"
+                                        onClick={openCreateForm}
+                                        data-test="create-listing-button"
+                                    >
+                                        Create Listing
+                                        <ArrowRight className="size-4" />
+                                    </Button>
+                                    <Button type="button" size="lg" variant="outline" className="rounded-full border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white" asChild>
+                                        <Link href={dashboard()}>Open dashboard</Link>
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <div className="rounded-[1.8rem] border border-black/8 bg-white/75 p-6 shadow-sm dark:border-white/10 dark:bg-white/6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h2 className="text-xl font-semibold">Existing listings</h2>
+                                        <p className="mt-1 text-sm text-stone-600 dark:text-stone-300">
+                                            {existingListings.length === 0
+                                                ? 'No listings yet. Create your first one from the panel on the right.'
+                                                : `${existingListings.length} listing${existingListings.length === 1 ? '' : 's'} ready to manage.`}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="mt-5 space-y-4">
+                                    {existingListings.length === 0 ? (
+                                        <div className="rounded-[1.4rem] border border-dashed border-stone-300 bg-stone-50/80 p-5 text-sm leading-7 text-stone-600 dark:border-white/10 dark:bg-[#132031] dark:text-stone-300">
+                                            Listings you create here will appear in this summary once saved.
+                                        </div>
+                                    ) : (
+                                        existingListings.map((listing) => (
+                                            <article key={listing.id} className="rounded-[1.4rem] border border-black/8 bg-stone-50/90 p-5 dark:border-white/10 dark:bg-[#132031]">
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <div>
+                                                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-stone-500 dark:text-stone-400">
+                                                            {listing.listing_type === 'apartment' ? 'Apartment' : 'Room'}
+                                                        </p>
+                                                        <h3 className="mt-2 text-lg font-semibold">{listing.title}</h3>
+                                                    </div>
+                                                    <span className="rounded-full bg-stone-900 px-3 py-1 text-xs font-semibold text-white dark:bg-white dark:text-stone-900">
+                                                        {listing.image_count} photo{listing.image_count === 1 ? '' : 's'}
+                                                    </span>
+                                                </div>
+                                                <div className="mt-4 flex flex-wrap gap-2 text-xs font-medium text-stone-600 dark:text-stone-300">
+                                                    {listing.size_label ? (
+                                                        <span className="rounded-full bg-white px-3 py-1 dark:bg-white/10">{listing.size_label}</span>
+                                                    ) : null}
+                                                    {listing.facilities.map((facility) => (
+                                                        <span key={facility} className="rounded-full bg-white px-3 py-1 capitalize dark:bg-white/10">
+                                                            {facility.replaceAll('_', ' ')}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </article>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="rounded-[2rem] border border-black/8 bg-white/82 p-6 shadow-sm dark:border-white/10 dark:bg-[#182233]">
+                            {!isFormOpen ? (
+                                <div className="flex min-h-[38rem] flex-col items-center justify-center rounded-[1.6rem] border border-dashed border-stone-300 bg-stone-50/80 px-8 text-center dark:border-white/10 dark:bg-[#132031]">
+                                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-stone-900 text-white dark:bg-white dark:text-stone-900">
+                                        <UploadCloud className="size-6" />
+                                    </div>
+                                    <h2 className="mt-5 text-2xl font-semibold">Open the listing form</h2>
+                                    <p className="mt-3 max-w-md text-sm leading-7 text-stone-600 dark:text-stone-300">
+                                        Click `Create Listing` on the left to open the form panel and start uploading room photos.
+                                    </p>
+                                </div>
+                            ) : (
+                                <form className="space-y-6" onSubmit={submitListing} data-test="listing-form-panel">
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div>
+                                            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-stone-500 dark:text-stone-400">Listing editor</p>
+                                            <h2 className="mt-2 text-2xl font-semibold">Create your listing</h2>
+                                            <p className="mt-2 text-sm leading-7 text-stone-600 dark:text-stone-300">
+                                                Contact details are prefilled from your landlord account and can still be edited before you submit.
+                                            </p>
+                                        </div>
+                                        <Button type="button" variant="ghost" size="icon" onClick={requestCloseForm} aria-label="Close listing form">
+                                            <X className="size-4" />
+                                        </Button>
+                                    </div>
+
+                                    <div className="grid gap-5 sm:grid-cols-2">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="contact_first_name">First name</Label>
+                                            <Input
+                                                id="contact_first_name"
+                                                value={form.data.contact_first_name}
+                                                onChange={(event) => form.setData('contact_first_name', event.target.value)}
+                                            />
+                                            <InputError message={form.errors.contact_first_name} />
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="contact_last_name">Last name</Label>
+                                            <Input
+                                                id="contact_last_name"
+                                                value={form.data.contact_last_name}
+                                                onChange={(event) => form.setData('contact_last_name', event.target.value)}
+                                            />
+                                            <InputError message={form.errors.contact_last_name} />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="contact_email">Email</Label>
+                                        <Input
+                                            id="contact_email"
+                                            type="email"
+                                            value={form.data.contact_email}
+                                            onChange={(event) => form.setData('contact_email', event.target.value)}
+                                        />
+                                        <InputError message={form.errors.contact_email} />
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="listing_type">Room or apartment</Label>
+                                        <select
+                                            id="listing_type"
+                                            value={form.data.listing_type}
+                                            onChange={(event) => {
+                                                form.setData('listing_type', event.target.value);
+                                                form.setData('size_label', '');
+                                            }}
+                                            className="h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none"
+                                            data-test="listing-type-select"
+                                        >
+                                            <option value="">Select a listing type</option>
+                                            {listingTypeOptions.map((option) => (
+                                                <option key={option.value} value={option.value}>
+                                                    {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <InputError message={form.errors.listing_type} />
+                                    </div>
+
+                                    {form.data.listing_type ? (
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="size_label">{sizeLabel}</Label>
+                                            <Input
+                                                id="size_label"
+                                                placeholder={form.data.listing_type === 'apartment' ? 'e.g. 85 sqm' : 'e.g. 25 sqm'}
+                                                value={form.data.size_label}
+                                                onChange={(event) => form.setData('size_label', event.target.value)}
+                                                data-test="size-label-input"
+                                            />
+                                            <InputError message={form.errors.size_label} />
+                                        </div>
+                                    ) : null}
+
+                                    <div className="grid gap-3">
+                                        <div>
+                                            <Label>Facilities</Label>
+                                            <p className="mt-1 text-sm text-stone-600 dark:text-stone-300">
+                                                Pick every amenity available in the room or apartment.
+                                            </p>
+                                        </div>
+
+                                        <div className="grid gap-3 sm:grid-cols-3">
+                                            {facilityOptions.map((option) => {
+                                                const checked = form.data.facilities.includes(option.value);
+
+                                                return (
+                                                    <label
+                                                        key={option.value}
+                                                        className="flex items-center gap-3 rounded-[1rem] border border-black/8 bg-stone-50/80 px-4 py-3 text-sm font-medium dark:border-white/10 dark:bg-[#132031]"
+                                                    >
+                                                        <Checkbox checked={checked} onCheckedChange={(value) => toggleFacility(option.value, value === true)} />
+                                                        <span>{option.label}</span>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
+                                        <InputError message={form.errors.facilities} />
+                                    </div>
+
+                                    <div className="grid gap-3">
+                                        <div>
+                                            <Label htmlFor={fileInputId}>Photos</Label>
+                                            <p className="mt-1 text-sm text-stone-600 dark:text-stone-300">
+                                                Drag and drop images here or click the panel to choose files.
+                                            </p>
+                                        </div>
+
+                                        <input
+                                            ref={fileInputRef}
+                                            id={fileInputId}
+                                            type="file"
+                                            multiple
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(event) => {
+                                                if (event.target.files) {
+                                                    addPhotos(event.target.files);
+                                                    event.target.value = '';
+                                                }
+                                            }}
+                                            data-test="listing-photo-input"
+                                        />
+
+                                        <button
+                                            type="button"
+                                            className={cn(
+                                                'flex min-h-44 w-full flex-col items-center justify-center rounded-[1.6rem] border border-dashed px-6 text-center transition',
+                                                isDragActive
+                                                    ? 'border-stone-900 bg-stone-100 dark:border-white dark:bg-white/10'
+                                                    : 'border-stone-300 bg-stone-50/80 hover:bg-stone-100 dark:border-white/10 dark:bg-[#132031] dark:hover:bg-[#1a2b41]',
+                                            )}
+                                            onClick={() => fileInputRef.current?.click()}
+                                            onDragEnter={(event) => {
+                                                event.preventDefault();
+                                                setIsDragActive(true);
+                                            }}
+                                            onDragOver={(event) => {
+                                                event.preventDefault();
+                                                setIsDragActive(true);
+                                            }}
+                                            onDragLeave={(event) => {
+                                                event.preventDefault();
+                                                if (event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                                                    return;
+                                                }
+                                                setIsDragActive(false);
+                                            }}
+                                            onDrop={(event) => {
+                                                event.preventDefault();
+                                                setIsDragActive(false);
+                                                addPhotos(event.dataTransfer.files);
+                                            }}
+                                        >
+                                            <UploadCloud className="size-8 text-stone-500 dark:text-stone-300" />
+                                            <p className="mt-4 text-base font-semibold">Drop listing photos here</p>
+                                            <p className="mt-2 text-sm leading-6 text-stone-600 dark:text-stone-300">
+                                                Up to 10 images. JPG, PNG, GIF, or WebP files only.
+                                            </p>
+                                        </button>
+                                        <InputError message={form.errors.photos} />
+                                        <InputError message={form.errors['photos.0']} />
+
+                                        {photoPreviews.length > 0 ? (
+                                            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                                {photoPreviews.map((preview, index) => (
+                                                    <article key={`${preview.name}-${index}`} className="overflow-hidden rounded-[1.2rem] border border-black/8 bg-stone-50 dark:border-white/10 dark:bg-[#132031]">
+                                                        <img src={preview.url} alt={preview.name} className="h-40 w-full object-cover" />
+                                                        <div className="flex items-center justify-between gap-3 p-3">
+                                                            <p className="truncate text-sm font-medium">{preview.name}</p>
+                                                            <Button type="button" variant="ghost" size="icon" onClick={() => removePhoto(index)} aria-label={`Remove ${preview.name}`}>
+                                                                <X className="size-4" />
+                                                            </Button>
+                                                        </div>
+                                                    </article>
+                                                ))}
+                                            </div>
+                                        ) : null}
+                                    </div>
+
+                                    {form.progress ? (
+                                        <div className="space-y-2">
+                                            <div className="h-2 overflow-hidden rounded-full bg-stone-200 dark:bg-white/10">
+                                                <div className="h-full rounded-full bg-stone-900 transition-[width] dark:bg-white" style={{ width: `${form.progress.percentage}%` }} />
+                                            </div>
+                                            <p className="text-xs font-medium text-stone-500 dark:text-stone-400">{form.progress.percentage}% uploaded</p>
+                                        </div>
+                                    ) : null}
+
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <Button type="submit" disabled={form.processing} className="rounded-full px-5" data-test="submit-listing-button">
+                                            {form.processing ? 'Submitting...' : 'Submit'}
+                                        </Button>
+                                        <Button type="button" variant="outline" className="rounded-full" onClick={requestCloseForm}>
+                                            Cancel
+                                        </Button>
+                                    </div>
+                                </form>
+                            )}
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <Dialog open={showLeaveDialog} onOpenChange={(open) => !open && cancelLeave()}>
+                <DialogContent data-test="unsaved-changes-dialog">
+                    <DialogHeader>
+                        <DialogTitle>Leave without saving?</DialogTitle>
+                        <DialogDescription>
+                            Your listing form has unsaved changes. If you continue, the data you entered will be lost.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button type="button" variant="outline" onClick={cancelLeave}>
+                            No
+                        </Button>
+                        <Button type="button" variant="destructive" onClick={confirmLeave}>
+                            Confirm
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }
