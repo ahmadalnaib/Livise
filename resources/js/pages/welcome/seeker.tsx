@@ -43,7 +43,7 @@ export default function SeekerWelcome({ canRegister = true }: SeekerProps) {
 
     return (
         <>
-            <Head title="Tenant Welcome" />
+            <Head title="LivingSpace - Find Your Room" />
 
             <div className="min-h-screen bg-[#f5f1ea] text-stone-900 dark:bg-[#101826] dark:text-stone-100">
                 <div className="mx-auto w-full max-w-7xl px-6 py-8 lg:px-8 lg:py-10">
