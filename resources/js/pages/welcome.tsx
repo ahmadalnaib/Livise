@@ -29,10 +29,10 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                                 className="text-5xl leading-tight font-bold tracking-tight text-stone-900 sm:text-7xl dark:text-white"
                                 style={{ fontFamily: '"Fraunces", serif' }}
                             >
-                                Find Your Perfect <span className="text-primary">Room</span>
+                                Rent smarter. <span className="text-primary">List faster.</span>
                             </h1>
                             <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-stone-600 dark:text-stone-300">
-                                <span className="font-semibold">LivingSpace</span> connects tenants searching for comfortable rooms with landlords who want to rent them out. Simple, fast, and transparent.
+                                <span className="font-semibold">LivingSpace</span> helps tenants discover verified rooms and helps landlords fill vacancies with trusted renters, all in one simple platform.
                             </p>
                             <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
                                 <div className="inline-flex items-center gap-2 text-sm font-medium text-stone-700 dark:text-stone-200">
@@ -93,10 +93,10 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                                 className="text-4xl font-bold text-stone-900 dark:text-white"
                                 style={{ fontFamily: '"Fraunces", serif' }}
                             >
-                                Choose Your Role
+                                Choose How You Use LivingSpace
                             </h2>
                             <p className="mt-4 text-stone-600 dark:text-stone-300">
-                                Select what you're looking for to get started
+                                Select whether you are renting a room or listing one
                             </p>
                         </div>
 
@@ -114,14 +114,14 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                                         className="text-4xl font-bold text-stone-900 dark:text-white"
                                         style={{ fontFamily: '"Fraunces", serif' }}
                                     >
-                                        I'm a Tenant
+                                        I need a room
                                     </h3>
                                     <p className="mt-4 text-stone-600 dark:text-stone-400">
                                         Browse verified rooms by city, check photos and prices, compare amenities, and find your perfect stay.
                                     </p>
                                     <div className="mt-8 flex items-center gap-2">
                                         <span className="text-sm font-semibold text-primary">
-                                            Find a room
+                                            Continue as tenant
                                         </span>
                                         <ArrowRight className="size-5 transition group-hover:translate-x-1" />
                                     </div>
@@ -141,14 +141,14 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                                         className="text-4xl font-bold text-stone-900 dark:text-white"
                                         style={{ fontFamily: '"Fraunces", serif' }}
                                     >
-                                        I'm a Landlord
+                                        I have a room to rent
                                     </h3>
                                     <p className="mt-4 text-stone-600 dark:text-stone-400">
                                         List your rooms easily, reach qualified tenants, manage bookings, and earn steady income.
                                     </p>
                                     <div className="mt-8 flex items-center gap-2">
                                         <span className="text-sm font-semibold text-green-600 dark:text-green-400">
-                                            Start listing
+                                            Continue as landlord
                                         </span>
                                         <ArrowRight className="size-5 transition group-hover:translate-x-1" />
                                     </div>
