@@ -9,7 +9,7 @@ import {
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import type { NavItem } from '@/types';
 
-export function NavMain({ items = [] }: { items: NavItem[] }) {
+export function NavMain({ items = [], ctaItem }: { items: NavItem[]; ctaItem?: NavItem }) {
     const { isCurrentUrl } = useCurrentUrl();
 
     return (
@@ -31,6 +31,18 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                     </SidebarMenuItem>
                 ))}
             </SidebarMenu>
+            {ctaItem ? (
+                <div className="px-2 pt-4">
+                    <Link
+                        href={ctaItem.href}
+                        prefetch
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-black px-4 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
+                    >
+                        {ctaItem.icon && <ctaItem.icon className="size-4" />}
+                        <span>{ctaItem.title}</span>
+                    </Link>
+                </div>
+            ) : null}
         </SidebarGroup>
     );
 }

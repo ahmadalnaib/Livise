@@ -9,11 +9,68 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['city_id', 'owner_id', 'title', 'description', 'price_per_night'])]
+#[Fillable([
+    'city_id',
+    'address_line_1',
+    'address_line_2',
+    'postal_code',
+    'owner_id',
+    'status',
+    'title',
+    'description',
+    'price_per_night',
+    'price_period',
+    'listing_type',
+    'contact_first_name',
+    'contact_last_name',
+    'contact_email',
+    'size_label',
+    'facilities',
+])]
 class Room extends Model
 {
     /** @use HasFactory<RoomFactory> */
     use HasFactory;
+
+    public const LISTING_TYPES = [
+        'room',
+        'apartment',
+    ];
+
+    public const FACILITIES = [
+        'wifi',
+        'kitchen',
+        'air_conditioning',
+        'heating',
+        'parking',
+        'washing_machine',
+        'dishwasher',
+        'lift',
+        'private_bathroom',
+        'furnished',
+        'balcony',
+        'tv',
+        'pets_allowed',
+        'smoke_alarm',
+    ];
+
+    public const PRICE_PERIODS = [
+        'night',
+        'month',
+    ];
+
+    public const STATUSES = [
+        'pending',
+        'confirmed',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'facilities' => 'array',
+            'price_per_night' => 'decimal:2',
+        ];
+    }
 
     public function city(): BelongsTo
     {
@@ -35,9 +92,19 @@ class Room extends Model
         return $this->hasMany(BookingRequest::class);
     }
 
+    public function images(): HasMany
+    {
+        return $this->hasMany(RoomImage::class)->orderBy('sort_order');
+    }
+
     public function pricePerNightLabel(): string
     {
-        return '$'.number_format((float) $this->price_per_night, 0);
+        return '€'.number_format((float) $this->price_per_night, 0).'/'.$this->pricePeriodLabel();
+    }
+
+    public function pricePeriodLabel(): string
+    {
+        return $this->price_period === 'month' ? 'month' : 'night';
     }
 
     /**

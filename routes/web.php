@@ -5,6 +5,8 @@ use App\Http\Controllers\Dashboard\AdminDashboardController;
 use App\Http\Controllers\Dashboard\LandlordDashboardController;
 use App\Http\Controllers\Dashboard\SeekerDashboardController;
 use App\Http\Controllers\Dashboard\SeekerRoomController;
+use App\Http\Controllers\LandlordListingController;
+use App\Http\Controllers\LandlordWelcomeController;
 use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -37,9 +39,7 @@ Route::get('/welcome/tenant', function () {
     ]);
 })->name('welcome.tenant');
 
-Route::inertia('/welcome/landlord', 'welcome/tenant', [
-    'canRegister' => Features::enabled(Features::registration()),
-])->name('welcome.landlord');
+Route::get('/welcome/landlord', LandlordWelcomeController::class)->name('welcome.landlord');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function (Request $request) {
@@ -106,9 +106,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('role:tenant')
         ->name('dashboard.tenant.rooms.rent.store');
 
-    Route::get('dashboard/landlord', [LandlordDashboardController::class, 'show'])
+    Route::get('dashboard/landlord', LandlordDashboardController::class)
         ->middleware('role:landlord')
         ->name('dashboard.landlord');
+
+    Route::post('landlord/listings', [LandlordListingController::class, 'store'])
+        ->middleware('role:landlord')
+        ->name('landlord.listings.store');
+
+    Route::get('dashboard/landlord/listings/{room}', [LandlordListingController::class, 'show'])
+        ->middleware('role:landlord')
+        ->name('dashboard.landlord.listings.show');
+
+    Route::get('dashboard/landlord/listings/{room}/edit', [LandlordListingController::class, 'edit'])
+        ->middleware('role:landlord')
+        ->name('dashboard.landlord.listings.edit');
+
+    Route::patch('landlord/listings/{room}', [LandlordListingController::class, 'update'])
+        ->middleware('role:landlord')
+        ->name('landlord.listings.update');
 });
 
 require __DIR__.'/settings.php';

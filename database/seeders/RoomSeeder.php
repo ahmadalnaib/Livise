@@ -18,19 +18,10 @@ class RoomSeeder extends Seeder
             return;
         }
 
-        $cityNames = [
-            'Amman',
-            'Aqaba',
-            'Irbid',
-            'Jerash',
-            'Madaba',
-            'Salt',
-        ];
-
         /** @var array<string, City> $cities */
         $cities = [];
 
-        foreach ($cityNames as $cityName) {
+        foreach (City::COMMON_GERMAN_CITIES as $cityName) {
             $cities[$cityName] = City::query()->firstOrCreate(['name' => $cityName]);
         }
 
@@ -51,50 +42,50 @@ class RoomSeeder extends Seeder
 
         collect([
             [
-                'city' => 'Amman',
-                'title' => 'Sunlit Studio Near Rainbow Street',
-                'description' => 'A calm studio with soft daylight, a compact desk, and easy access to cafes and transport in central Amman.',
+                'city' => 'Berlin',
+                'title' => 'Sunlit Studio Near Mitte',
+                'description' => 'A calm studio with soft daylight, a compact desk, and easy access to cafes and transport in central Berlin.',
                 'price_per_night' => 52,
             ],
             [
-                'city' => 'Aqaba',
-                'title' => 'Sea Breeze Private Room',
-                'description' => 'A clean private room designed for short coastal stays, with a relaxed mood and quick access to the waterfront.',
+                'city' => 'Hamburg',
+                'title' => 'Canal Side Private Room',
+                'description' => 'A clean private room designed for short city stays, with a relaxed mood and quick access to the waterfront.',
                 'price_per_night' => 64,
             ],
             [
-                'city' => 'Irbid',
+                'city' => 'Leipzig',
                 'title' => 'Quiet Student Loft',
                 'description' => 'Ideal for focused stays, with a reading corner, practical storage, and a peaceful neighborhood atmosphere.',
                 'price_per_night' => 38,
             ],
             [
-                'city' => 'Jerash',
+                'city' => 'Heidelberg',
                 'title' => 'Garden View Guest Room',
                 'description' => 'An airy room with greenery outside, perfect for longer stays and travelers who prefer slower mornings.',
                 'price_per_night' => 44,
             ],
             [
-                'city' => 'Madaba',
+                'city' => 'Munich',
                 'title' => 'Warm Corner Suite',
                 'description' => 'A softly styled suite with flexible check-in, a comfortable bed, and enough space for work and rest.',
                 'price_per_night' => 57,
             ],
             [
-                'city' => 'Salt',
+                'city' => 'Cologne',
                 'title' => 'Historic Hillside Room',
                 'description' => 'A cozy room in a classic neighborhood setting, with a welcoming host and easy city access.',
                 'price_per_night' => 41,
             ],
             [
-                'city' => 'Amman',
+                'city' => 'Frankfurt am Main',
                 'title' => 'Minimal Executive Stay',
                 'description' => 'Designed for tenants who want a refined room, fast Wi-Fi, and a polished business-ready setting.',
                 'price_per_night' => 72,
             ],
             [
-                'city' => 'Aqaba',
-                'title' => 'Compact Harbor Retreat',
+                'city' => 'Stuttgart',
+                'title' => 'Compact City Retreat',
                 'description' => 'Small, bright, and efficient, with a fresh feel and a practical layout for weekend or weekly stays.',
                 'price_per_night' => 49,
             ],
@@ -102,9 +93,11 @@ class RoomSeeder extends Seeder
             Room::query()->create([
                 'city_id' => $cities[$roomData['city']]->id,
                 'owner_id' => $owners[$index % $owners->count()]->id,
+                'status' => 'confirmed',
                 'title' => $roomData['title'],
                 'description' => $roomData['description'],
                 'price_per_night' => $roomData['price_per_night'],
+                'price_period' => 'night',
             ]);
         });
     }
