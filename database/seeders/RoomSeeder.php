@@ -18,6 +18,18 @@ class RoomSeeder extends Seeder
             return;
         }
 
+<<<<<<< HEAD
+=======
+        $cityNames = [
+            'Berlin',
+            'Hamburg',
+            'Munich',
+            'Cologne',
+            'Frankfurt',
+            'Stuttgart',
+        ];
+
+>>>>>>> 7eb2959 (feat: update RoomSeeder and SeekerDashboard for German cities and improved map icon)
         /** @var array<string, City> $cities */
         $cities = [];
 
@@ -30,7 +42,7 @@ class RoomSeeder extends Seeder
             ['name' => 'Omar Suites', 'email' => 'landlord2@example.com'],
             ['name' => 'Mira Homes', 'email' => 'landlord3@example.com'],
             ['name' => 'Yazan Rooms', 'email' => 'landlord4@example.com'],
-        ])->map(fn (array $owner): User => User::query()->updateOrCreate(
+        ])->map(fn(array $owner): User => User::query()->updateOrCreate(
             ['email' => $owner['email']],
             [
                 'name' => $owner['name'],
@@ -43,12 +55,17 @@ class RoomSeeder extends Seeder
         collect([
             [
                 'city' => 'Berlin',
+<<<<<<< HEAD
                 'title' => 'Sunlit Studio Near Mitte',
+=======
+                'title' => 'Sunlit Studio Near Alexanderplatz',
+>>>>>>> 7eb2959 (feat: update RoomSeeder and SeekerDashboard for German cities and improved map icon)
                 'description' => 'A calm studio with soft daylight, a compact desk, and easy access to cafes and transport in central Berlin.',
                 'price_per_night' => 52,
             ],
             [
                 'city' => 'Hamburg',
+<<<<<<< HEAD
                 'title' => 'Canal Side Private Room',
                 'description' => 'A clean private room designed for short city stays, with a relaxed mood and quick access to the waterfront.',
                 'price_per_night' => 64,
@@ -56,10 +73,20 @@ class RoomSeeder extends Seeder
             [
                 'city' => 'Leipzig',
                 'title' => 'Quiet Student Loft',
+=======
+                'title' => 'Harbor View Private Room',
+                'description' => 'A clean private room designed for short stays, with a relaxed mood and quick access to the waterfront.',
+                'price_per_night' => 64,
+            ],
+            [
+                'city' => 'Munich',
+                'title' => 'Quiet Studio Near English Garden',
+>>>>>>> 7eb2959 (feat: update RoomSeeder and SeekerDashboard for German cities and improved map icon)
                 'description' => 'Ideal for focused stays, with a reading corner, practical storage, and a peaceful neighborhood atmosphere.',
                 'price_per_night' => 38,
             ],
             [
+<<<<<<< HEAD
                 'city' => 'Heidelberg',
                 'title' => 'Garden View Guest Room',
                 'description' => 'An airy room with greenery outside, perfect for longer stays and travelers who prefer slower mornings.',
@@ -68,10 +95,21 @@ class RoomSeeder extends Seeder
             [
                 'city' => 'Munich',
                 'title' => 'Warm Corner Suite',
+=======
+                'city' => 'Cologne',
+                'title' => 'Cathedral View Guest Room',
+                'description' => 'An airy room with city views, perfect for longer stays and travelers who prefer central locations.',
+                'price_per_night' => 44,
+            ],
+            [
+                'city' => 'Frankfurt',
+                'title' => 'Business Center Suite',
+>>>>>>> 7eb2959 (feat: update RoomSeeder and SeekerDashboard for German cities and improved map icon)
                 'description' => 'A softly styled suite with flexible check-in, a comfortable bed, and enough space for work and rest.',
                 'price_per_night' => 57,
             ],
             [
+<<<<<<< HEAD
                 'city' => 'Cologne',
                 'title' => 'Historic Hillside Room',
                 'description' => 'A cozy room in a classic neighborhood setting, with a welcoming host and easy city access.',
@@ -79,13 +117,27 @@ class RoomSeeder extends Seeder
             ],
             [
                 'city' => 'Frankfurt am Main',
+=======
+                'city' => 'Stuttgart',
+                'title' => 'Parkside Hillside Room',
+                'description' => 'A cozy room in a quiet neighborhood setting, with a welcoming host and easy city access.',
+                'price_per_night' => 41,
+            ],
+            [
+                'city' => 'Berlin',
+>>>>>>> 7eb2959 (feat: update RoomSeeder and SeekerDashboard for German cities and improved map icon)
                 'title' => 'Minimal Executive Stay',
                 'description' => 'Designed for tenants who want a refined room, fast Wi-Fi, and a polished business-ready setting.',
                 'price_per_night' => 72,
             ],
             [
+<<<<<<< HEAD
                 'city' => 'Stuttgart',
                 'title' => 'Compact City Retreat',
+=======
+                'city' => 'Hamburg',
+                'title' => 'Compact Harbor Retreat',
+>>>>>>> 7eb2959 (feat: update RoomSeeder and SeekerDashboard for German cities and improved map icon)
                 'description' => 'Small, bright, and efficient, with a fresh feel and a practical layout for weekend or weekly stays.',
                 'price_per_night' => 49,
             ],

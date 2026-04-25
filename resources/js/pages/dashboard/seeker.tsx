@@ -1,8 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import L from 'leaflet';
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { ArrowLeft, ArrowRight, BedDouble, Heart, MapPinned, RotateCcw, Sparkles } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
@@ -22,14 +19,12 @@ type RoomCard = {
     ownerName: string;
 };
 
-const mapIcon = L.icon({
-    iconRetinaUrl: markerIcon2x,
-    iconUrl: markerIcon,
-    shadowUrl: markerShadow,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41],
+const mapIcon = L.divIcon({
+    html: `<div class="flex size-10 items-center justify-center rounded-full bg-primary shadow-lg"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>`,
+    className: '',
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -40],
 });
 
 const germanMajorCities = [
@@ -64,9 +59,6 @@ const cityCoordinates: Record<string, [number, number]> = {
     dresden: [51.0504, 13.7373],
     hannover: [52.3759, 9.732],
     nuremberg: [49.4521, 11.0767],
-    amman: [31.9539, 35.9106],
-    aqaba: [29.5321, 35.0063],
-    irbid: [32.5569, 35.85],
 };
 
 type PreferenceAnswers = {
@@ -186,14 +178,9 @@ export default function SeekerDashboard() {
     const [selectedCity, setSelectedCity] = useState<'all' | 'germany-major' | string>('all');
     const [maxPrice, setMaxPrice] = useState<number>(Math.max(...rooms.map((room) => room.pricePerNightValue), 0));
 
-    const germanCitySet = useMemo(
-        () => new Set(germanMajorCities.map((city) => city.toLowerCase())),
-        [],
-    );
-
     const cityOptions = useMemo(
-        () => Array.from(new Set(rooms.map((room) => room.city).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
-        [rooms],
+        () => germanMajorCities,
+        [],
     );
 
     const filteredRooms = useMemo(() => {
@@ -212,15 +199,13 @@ export default function SeekerDashboard() {
             const matchesCity =
                 selectedCity === 'all'
                     ? true
-                    : selectedCity === 'germany-major'
-                        ? germanCitySet.has(normalizedCity)
-                        : normalizedCity === selectedCity.toLowerCase();
+                    : normalizedCity === selectedCity.toLowerCase();
 
             const matchesPrice = room.pricePerNightValue <= maxPrice;
 
             return matchesSearch && matchesSize && matchesCity && matchesPrice;
         });
-    }, [rooms, searchTerm, selectedSize, selectedCity, maxPrice, germanCitySet]);
+    }, [rooms, searchTerm, selectedSize, selectedCity, maxPrice]);
 
     const mapRooms = useMemo(
         () => filteredRooms.filter((room) => cityCoordinates[room.city.toLowerCase()] !== undefined),
@@ -498,7 +483,6 @@ export default function SeekerDashboard() {
                                         className="rounded-lg border border-sidebar-border/70 bg-background px-3 py-2 text-sm dark:border-sidebar-border"
                                     >
                                         <option value="all">All cities</option>
-                                        <option value="germany-major">All Germany big cities</option>
                                         {cityOptions.map((city) => (
                                             <option key={city} value={city}>
                                                 {city}
