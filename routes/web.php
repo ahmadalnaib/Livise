@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Dashboard\AdminBookingController;
+use App\Http\Controllers\Dashboard\AdminDashboardController;
+use App\Http\Controllers\Dashboard\LandlordDashboardController;
 use App\Http\Controllers\Dashboard\SeekerDashboardController;
 use App\Http\Controllers\Dashboard\SeekerRoomController;
 use Illuminate\Http\Request;
@@ -27,9 +30,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     })->name('dashboard');
 
-    Route::inertia('dashboard/admin', 'dashboard/admin')
+    Route::get('dashboard/admin', [AdminDashboardController::class, 'show'])
         ->middleware('role:admin')
         ->name('dashboard.admin');
+
+    Route::post('dashboard/admin/bookings/{bookingRequest}/approve', [AdminBookingController::class, 'approve'])
+        ->middleware('role:admin')
+        ->name('dashboard.admin.bookings.approve');
 
     Route::get('dashboard/tenant', [SeekerDashboardController::class, 'show'])
         ->middleware('role:tenant')
@@ -55,7 +62,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('role:tenant')
         ->name('dashboard.tenant.rooms.rent.store');
 
-    Route::inertia('dashboard/landlord', 'dashboard/tenant')
+    Route::get('dashboard/landlord', [LandlordDashboardController::class, 'show'])
         ->middleware('role:landlord')
         ->name('dashboard.landlord');
 });

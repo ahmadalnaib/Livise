@@ -14,6 +14,11 @@ type CurrentUserRental = {
     endsAt: string;
 };
 
+type CurrentUserPendingRequest = {
+    startsAt: string;
+    endsAt: string;
+};
+
 type RoomDetails = {
     id: number;
     title: string;
@@ -29,6 +34,7 @@ type PageProps = {
     room: RoomDetails;
     bookedRanges: BookedRange[];
     currentUserRental: CurrentUserRental | null;
+    currentUserPendingRequest: CurrentUserPendingRequest | null;
     canRent: boolean;
 };
 
@@ -48,7 +54,7 @@ function formatDate(value: string): string {
 }
 
 export default function SeekerRoomShow() {
-    const { room, bookedRanges, currentUserRental, canRent } = usePage<PageProps>().props;
+    const { room, bookedRanges, currentUserRental, currentUserPendingRequest, canRent } = usePage<PageProps>().props;
     const form = useForm({
         starts_at: addDays(2),
         ends_at: addDays(7),
@@ -127,6 +133,17 @@ export default function SeekerRoomShow() {
                                     </div>
                                 ) : null}
 
+                                {currentUserPendingRequest ? (
+                                    <div className="mt-6 rounded-2xl border border-blue-300/50 bg-blue-50 p-4 dark:border-blue-900/50 dark:bg-blue-950/30">
+                                        <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">
+                                            Booking request sent to admin.
+                                        </p>
+                                        <p className="mt-1 text-sm text-blue-700/80 dark:text-blue-300/80">
+                                            Pending approval for {formatDate(currentUserPendingRequest.startsAt)} to {formatDate(currentUserPendingRequest.endsAt)}.
+                                        </p>
+                                    </div>
+                                ) : null}
+
                                 {!canRent ? (
                                     <div className="mt-6 rounded-2xl border border-amber-300/50 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-950/30">
                                         <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">
@@ -139,7 +156,7 @@ export default function SeekerRoomShow() {
                             <form onSubmit={submit} className="mt-8 rounded-3xl border border-sidebar-border/70 bg-black/2 p-5 dark:border-sidebar-border dark:bg-white/3">
                                 <div className="flex items-center gap-2 text-sm font-semibold">
                                     <ShieldCheck className="size-4 text-primary" />
-                                    Reserve this room
+                                    Send booking request
                                 </div>
 
                                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -175,7 +192,7 @@ export default function SeekerRoomShow() {
                                     disabled={form.processing || !canRent}
                                     className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
                                 >
-                                    {form.processing ? 'Saving booking...' : 'Rent this room'}
+                                    {form.processing ? 'Sending request...' : 'Send request to admin'}
                                 </button>
                             </form>
                         </div>

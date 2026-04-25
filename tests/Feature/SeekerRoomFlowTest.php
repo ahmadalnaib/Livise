@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\BookingRequest;
 use App\Models\City;
 use App\Models\Rental;
 use App\Models\Room;
@@ -27,7 +28,7 @@ test('tenant can open a room details page', function () {
         ->assertSee('Elegant City Room');
 });
 
-test('tenant can rent an available room', function () {
+test('tenant can send a booking request for an available room', function () {
     /** @var User $tenant */
     $tenant = User::factory()->create(['role' => 'tenant']);
     $landlord = User::factory()->create(['role' => 'landlord']);
@@ -44,9 +45,14 @@ test('tenant can rent an available room', function () {
 
     $response->assertRedirect(route('dashboard.tenant.rooms.show', $room, absolute: false));
 
-    $rental = Rental::query()->where('room_id', $room->id)->where('renter_id', $tenant->id)->first();
+    $request = BookingRequest::query()
+        ->where('room_id', $room->id)
+        ->where('renter_id', $tenant->id)
+        ->where('status', 'pending')
+        ->first();
 
-    expect($rental)->not->toBeNull();
+    expect($request)->not->toBeNull();
+    expect(Rental::query()->count())->toBe(0);
 });
 
 test('tenant cannot rent a room that overlaps an existing booking', function () {

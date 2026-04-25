@@ -48,4 +48,19 @@ class User extends Authenticatable
     {
         return $this->hasOne(SeekerSession::class);
     }
+
+    public function bookingRequests(): HasMany
+    {
+        return $this->hasMany(BookingRequest::class, 'renter_id');
+    }
+
+    public function landlordBookingRequests(): HasMany
+    {
+        return $this->hasMany(BookingRequest::class, 'landlord_id');
+    }
+
+    public function approvedBookingRequests(): HasMany
+    {
+        return $this->hasMany(BookingRequest::class, 'approved_by');
+    }
 }

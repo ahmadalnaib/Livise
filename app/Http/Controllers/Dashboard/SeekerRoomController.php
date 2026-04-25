@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Models\BookingRequest;
 use App\Models\Rental;
 use App\Models\Room;
 use Illuminate\Http\RedirectResponse;
@@ -23,6 +24,12 @@ class SeekerRoomController extends Controller
 
         $currentUserRental = $room->rentals
             ->firstWhere('renter_id', $request->user()->id);
+        $currentUserPendingRequest = BookingRequest::query()
+            ->where('room_id', $room->id)
+            ->where('renter_id', $request->user()->id)
+            ->where('status', 'pending')
+            ->latest('id')
+            ->first();
 
         return Inertia::render('dashboard/seeker-room-show', [
             'room' => [
@@ -47,6 +54,10 @@ class SeekerRoomController extends Controller
                 'startsAt' => $currentUserRental->starts_at->toDateString(),
                 'endsAt' => $currentUserRental->ends_at->toDateString(),
             ],
+            'currentUserPendingRequest' => $currentUserPendingRequest === null ? null : [
+                'startsAt' => $currentUserPendingRequest->starts_at->toDateString(),
+                'endsAt' => $currentUserPendingRequest->ends_at->toDateString(),
+            ],
             'canRent' => $room->owner_id !== $request->user()->id,
         ]);
     }
@@ -70,11 +81,27 @@ class SeekerRoomController extends Controller
             ]);
         }
 
-        Rental::query()->create([
+        $hasPendingRequest = BookingRequest::query()
+            ->where('room_id', $room->id)
+            ->where('renter_id', $request->user()->id)
+            ->where('status', 'pending')
+            ->whereDate('starts_at', '<=', $validated['ends_at'])
+            ->whereDate('ends_at', '>=', $validated['starts_at'])
+            ->exists();
+
+        if ($hasPendingRequest) {
+            throw ValidationException::withMessages([
+                'starts_at' => 'You already sent a pending request for overlapping dates.',
+            ]);
+        }
+
+        BookingRequest::query()->create([
             'room_id' => $room->id,
             'renter_id' => $request->user()->id,
+            'landlord_id' => $room->owner_id,
             'starts_at' => $validated['starts_at'],
             'ends_at' => $validated['ends_at'],
+            'status' => 'pending',
         ]);
 
         return to_route('dashboard.tenant.rooms.show', $room);

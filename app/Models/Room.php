@@ -30,6 +30,11 @@ class Room extends Model
         return $this->hasMany(Rental::class);
     }
 
+    public function bookingRequests(): HasMany
+    {
+        return $this->hasMany(BookingRequest::class);
+    }
+
     public function pricePerNightLabel(): string
     {
         return '$'.number_format((float) $this->price_per_night, 0);
