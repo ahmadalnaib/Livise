@@ -123,9 +123,9 @@ const questions: Array<{
             title: 'How much do you want to spend per night?',
             helper: 'This keeps the next room cards close to your price comfort zone.',
             options: [
-                { value: 'low', label: 'Under $40', caption: 'Budget-first stays.' },
-                { value: 'mid', label: '$40 - $60', caption: 'The most balanced range.' },
-                { value: 'high', label: 'Over $60', caption: 'Premium feel and location.' },
+                { value: 'low', label: 'Under €40', caption: 'Budget-first stays.' },
+                { value: 'mid', label: '€40 - €60', caption: 'The most balanced range.' },
+                { value: 'high', label: 'Over €60', caption: 'Premium feel and location.' },
             ],
         },
         {

@@ -106,13 +106,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('role:tenant')
         ->name('dashboard.tenant.rooms.rent.store');
 
-    Route::get('dashboard/landlord', [LandlordDashboardController::class, 'show'])
+    Route::get('dashboard/landlord', LandlordDashboardController::class)
         ->middleware('role:landlord')
         ->name('dashboard.landlord');
 
     Route::post('landlord/listings', [LandlordListingController::class, 'store'])
         ->middleware('role:landlord')
         ->name('landlord.listings.store');
+
+    Route::get('dashboard/landlord/listings/{room}', [LandlordListingController::class, 'show'])
+        ->middleware('role:landlord')
+        ->name('dashboard.landlord.listings.show');
+
+    Route::get('dashboard/landlord/listings/{room}/edit', [LandlordListingController::class, 'edit'])
+        ->middleware('role:landlord')
+        ->name('dashboard.landlord.listings.edit');
+
+    Route::patch('landlord/listings/{room}', [LandlordListingController::class, 'update'])
+        ->middleware('role:landlord')
+        ->name('landlord.listings.update');
 });
 
 require __DIR__.'/settings.php';

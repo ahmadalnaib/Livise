@@ -8,14 +8,16 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
 
-class StoreLandlordListingRequest extends FormRequest
+class UpdateLandlordListingRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return $this->user()?->role === 'landlord';
+        return $this->user()?->role === 'landlord'
+            && $this->route('room') instanceof Room
+            && $this->route('room')->owner_id === $this->user()->id;
     }
 
     /**
@@ -38,7 +40,7 @@ class StoreLandlordListingRequest extends FormRequest
             'size_label' => ['required', 'string', 'max:255'],
             'facilities' => ['nullable', 'array'],
             'facilities.*' => ['string', Rule::in(Room::FACILITIES)],
-            'photos' => ['required', 'array', 'min:1', 'max:10'],
+            'photos' => ['nullable', 'array', 'max:10'],
             'photos.*' => ['required', File::image()->max('5mb')],
         ];
     }

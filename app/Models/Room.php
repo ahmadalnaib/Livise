@@ -11,10 +11,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'city_id',
+    'address_line_1',
+    'address_line_2',
+    'postal_code',
     'owner_id',
+    'status',
     'title',
     'description',
     'price_per_night',
+    'price_period',
     'listing_type',
     'contact_first_name',
     'contact_last_name',
@@ -33,9 +38,30 @@ class Room extends Model
     ];
 
     public const FACILITIES = [
+        'wifi',
+        'kitchen',
+        'air_conditioning',
+        'heating',
+        'parking',
         'washing_machine',
         'dishwasher',
         'lift',
+        'private_bathroom',
+        'furnished',
+        'balcony',
+        'tv',
+        'pets_allowed',
+        'smoke_alarm',
+    ];
+
+    public const PRICE_PERIODS = [
+        'night',
+        'month',
+    ];
+
+    public const STATUSES = [
+        'pending',
+        'confirmed',
     ];
 
     protected function casts(): array
@@ -73,7 +99,12 @@ class Room extends Model
 
     public function pricePerNightLabel(): string
     {
-        return '$'.number_format((float) $this->price_per_night, 0);
+        return '€'.number_format((float) $this->price_per_night, 0).'/'.$this->pricePeriodLabel();
+    }
+
+    public function pricePeriodLabel(): string
+    {
+        return $this->price_period === 'month' ? 'month' : 'night';
     }
 
     /**

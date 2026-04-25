@@ -22,6 +22,7 @@ class RoomFactory extends Factory
         return [
             'city_id' => City::factory(),
             'owner_id' => User::factory(),
+            'status' => 'confirmed',
             'title' => fake()->sentence(3),
             'description' => fake()->paragraph(),
             'price_per_night' => fake()->randomFloat(2, 50, 500),

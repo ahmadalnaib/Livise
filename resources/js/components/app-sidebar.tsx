@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BedDouble, Building2, LayoutGrid, ListChecks, Users } from 'lucide-react';
+import { BedDouble, BookOpen, Building2, CheckCircle2, Clock3, LayoutGrid, ListChecks, MessagesSquare, PlusCircle, Users } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -14,14 +14,30 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { tenant } from '@/routes/dashboard';
 import { list as roomsList } from '@/routes/dashboard/admin/rooms';
 import { list as usersList } from '@/routes/dashboard/admin/users';
+import { landlord as landlordDashboard, tenant } from '@/routes/dashboard';
+import { landlord as landlordWelcome } from '@/routes/welcome';
 import tenantRoutes from '@/routes/dashboard/tenant';
 import type { NavItem } from '@/types';
 
+const footerNavItems: NavItem[] = [
+    {
+        title: 'Documentation',
+        href: 'https://laravel.com/docs/starter-kits#react',
+        icon: BookOpen,
+    },
+];
+
 export function AppSidebar() {
-    const { auth } = usePage().props;
+    const { auth } = usePage().props as {
+        auth: {
+            user?: {
+                role?: string;
+            } | null;
+        };
+    };
+
     const isAdmin = auth.user?.role === 'admin';
     const isTenant = auth.user?.role === 'tenant';
 
@@ -33,35 +49,62 @@ export function AppSidebar() {
         },
         ...(isAdmin
             ? [
-                {
-                    title: 'Users',
-                    href: usersList(),
-                    icon: Users,
-                },
-                {
-                    title: 'Rooms',
-                    href: roomsList(),
-                    icon: Building2,
-                },
-            ]
+                  {
+                      title: 'Users',
+                      href: usersList(),
+                      icon: Users,
+                  },
+                  {
+                      title: 'Rooms',
+                      href: roomsList(),
+                      icon: Building2,
+                  },
+              ]
             : []),
         ...(isTenant
             ? [
-                {
-                    title: 'All Rooms',
-                    href: tenant(),
-                    icon: ListChecks,
-                },
-                {
-                    title: 'Rented Rooms',
-                    href: tenantRoutes.rentedRooms(),
-                    icon: BedDouble,
-                },
-            ]
+                  {
+                      title: 'All Rooms',
+                      href: tenant(),
+                      icon: ListChecks,
+                  },
+                  {
+                      title: 'Rented Rooms',
+                      href: tenantRoutes.rentedRooms(),
+                      icon: BedDouble,
+                  },
+              ]
+            : []),
+        ...(auth.user?.role === 'landlord'
+            ? [
+                  {
+                      title: 'Pending listings',
+                      href: landlordDashboard({ query: { status: 'pending' } }),
+                      icon: Clock3,
+                  },
+                  {
+                      title: 'Confirmed listings',
+                      href: landlordDashboard({ query: { status: 'confirmed' } }),
+                      icon: CheckCircle2,
+                  },
+                  {
+                      title: 'Tenant requests',
+                      href: landlordDashboard({ query: { status: 'requests' } }),
+                      icon: MessagesSquare,
+                  },
+              ]
             : []),
     ];
 
-    const footerNavItems: NavItem[] = [];
+    const platformCtaItem: NavItem | undefined =
+        auth.user?.role === 'landlord'
+            ? {
+                  title: 'Create listing',
+                  href: landlordWelcome({ query: { create: '1' } }),
+                  icon: PlusCircle,
+                  variant: 'cta',
+              }
+            : undefined;
 
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -78,7 +121,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={mainNavItems} ctaItem={platformCtaItem} />
             </SidebarContent>
 
             <SidebarFooter>

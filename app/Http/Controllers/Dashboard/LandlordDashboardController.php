@@ -3,47 +3,50 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use App\Models\BookingRequest;
-use App\Models\Rental;
 use App\Models\Room;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class LandlordDashboardController extends Controller
 {
-    public function show(Request $request): Response
+    public function __invoke(): Response
     {
-        $landlordId = $request->user()->id;
-
-        $approvedBookings = BookingRequest::query()
-            ->with(['room.city:id,name', 'renter:id,name,email'])
-            ->where('landlord_id', $landlordId)
-            ->where('status', 'approved')
-            ->latest('approved_at')
-            ->get()
-            ->map(fn (BookingRequest $bookingRequest): array => [
-                'id' => $bookingRequest->id,
-                'startsAt' => $bookingRequest->starts_at->toDateString(),
-                'endsAt' => $bookingRequest->ends_at->toDateString(),
-                'approvedAt' => $bookingRequest->approved_at?->toDateTimeString(),
-                'roomTitle' => (string) $bookingRequest->room?->title,
-                'roomCity' => (string) $bookingRequest->room?->city?->name,
-                'tenantName' => (string) $bookingRequest->renter?->name,
-                'tenantEmail' => (string) $bookingRequest->renter?->email,
-            ])
-            ->all();
+        $landlord = request()->user();
+        $statusFilter = request()->string('status')->value();
+        $allowedFilters = [...Room::STATUSES, 'requests'];
+        $allListings = $landlord->rooms()
+            ->with(['city', 'images'])
+            ->latest()
+            ->get();
+        $listings = match ($statusFilter) {
+            'pending' => $allListings->where('status', 'pending')->values(),
+            'confirmed' => $allListings->where('status', 'confirmed')->values(),
+            'requests' => collect(),
+            default => $allListings,
+        };
 
         return Inertia::render('dashboard/tenant', [
+            'activeFilter' => in_array($statusFilter, $allowedFilters, true) ? $statusFilter : 'all',
             'stats' => [
-                'publishedRooms' => Room::query()->where('owner_id', $landlordId)->count(),
-                'approvedBookings' => count($approvedBookings),
-                'upcomingCheckIns' => Rental::query()
-                    ->whereHas('room', fn ($query) => $query->where('owner_id', $landlordId))
-                    ->whereDate('starts_at', '>=', now()->toDateString())
-                    ->count(),
+                'publishedRooms' => $allListings->count(),
+                'pendingListings' => $allListings->where('status', 'pending')->count(),
+                'confirmedListings' => $allListings->where('status', 'confirmed')->count(),
+                'estimatedRevenue' => $allListings->sum(fn (Room $room): float => (float) $room->price_per_night),
+                'withPhotos' => $allListings->filter(fn (Room $room): bool => $room->images->isNotEmpty())->count(),
             ],
-            'approvedBookings' => $approvedBookings,
+            'listings' => $listings->map(fn (Room $room): array => [
+                'id' => $room->id,
+                'status' => $room->status,
+                'title' => $room->title,
+                'listing_type' => $room->listing_type,
+                'city' => $room->city?->name,
+                'address_line_1' => $room->address_line_1,
+                'postal_code' => $room->postal_code,
+                'price_per_night' => $room->price_per_night,
+                'price_period' => $room->price_period,
+                'image_count' => $room->images->count(),
+                'facilities' => $room->facilities ?? [],
+            ])->values()->all(),
         ]);
     }
 }
