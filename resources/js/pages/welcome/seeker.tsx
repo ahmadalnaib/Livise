@@ -1,42 +1,31 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowRight, MapPin, Star } from 'lucide-react';
+import { ArrowRight, Clock3, MapPin, ShieldCheck, Star, WalletCards } from 'lucide-react';
 import { dashboard, home, login, register } from '@/routes';
+import { show as roomShow } from '@/routes/dashboard/tenant/rooms';
 
-const featuredRooms = [
-    {
-        title: 'Garden Light Studio',
-        city: 'Amman',
-        price: '$44',
-        rating: '4.9',
-        image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80',
-    },
-    {
-        title: 'Sunset Balcony Room',
-        city: 'Aqaba',
-        price: '$59',
-        rating: '4.8',
-        image: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80',
-    },
-    {
-        title: 'City Calm Apartment',
-        city: 'Irbid',
-        price: '$37',
-        rating: '4.7',
-        image: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80',
-    },
-];
+type FeaturedRoom = {
+    id: number;
+    title: string;
+    city: string;
+    price: string;
+    rating: string;
+    image: string;
+};
 
 type SeekerProps = {
     canRegister?: boolean;
+    featuredRooms?: FeaturedRoom[];
 };
 
 type PageProps = {
     auth: {
-        user: unknown | null;
+        user: {
+            role?: string;
+        } | null;
     };
 };
 
-export default function SeekerWelcome({ canRegister = true }: SeekerProps) {
+export default function SeekerWelcome({ canRegister = true, featuredRooms = [] }: SeekerProps) {
     const { auth } = usePage<PageProps>().props;
     const primaryHref = auth.user ? dashboard() : login();
     const primaryLabel = auth.user ? 'Go to dashboard' : 'Log in to browse';
@@ -62,7 +51,7 @@ export default function SeekerWelcome({ canRegister = true }: SeekerProps) {
                                 Find your next room
                             </p>
                             <h1 className="text-5xl leading-tight font-semibold sm:text-6xl" style={{ fontFamily: '"Fraunces", serif' }}>
-                                Rooms curated for seekers.
+                                Rooms curated for tenants.
                             </h1>
                             <p className="mt-5 max-w-xl text-base leading-8 text-stone-600 dark:text-stone-300">
                                 Browse calm, photo-rich listings across cities and pick the stay that fits your budget and style.
@@ -99,7 +88,11 @@ export default function SeekerWelcome({ canRegister = true }: SeekerProps) {
 
                     <section className="grid gap-5 md:grid-cols-3">
                         {featuredRooms.map((room) => (
-                            <article key={room.title} className="group overflow-hidden rounded-[1.6rem] border border-black/8 bg-white/80 shadow-sm transition hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-[#182233]">
+                            <Link
+                                key={room.id}
+                                href={auth.user?.role === 'tenant' ? roomShow(room.id) : login()}
+                                className="group overflow-hidden rounded-[1.6rem] border border-black/8 bg-white/80 shadow-sm transition hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-[#182233]"
+                            >
                                 <img src={room.image} alt={room.title} className="h-52 w-full object-cover transition duration-500 group-hover:scale-[1.03]" loading="lazy" />
                                 <div className="space-y-3 p-5">
                                     <p className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.22em] text-stone-500 dark:text-stone-400">
@@ -115,8 +108,89 @@ export default function SeekerWelcome({ canRegister = true }: SeekerProps) {
                                         </span>
                                     </div>
                                 </div>
+                            </Link>
+                        ))}
+                    </section>
+
+                    <section className="mt-14 grid gap-6 lg:grid-cols-3">
+                        {[
+                            {
+                                icon: ShieldCheck,
+                                title: 'Verified listings',
+                                description: 'Every listing includes clear details, photos, and host information for confident decisions.',
+                            },
+                            {
+                                icon: WalletCards,
+                                title: 'Budget-friendly choices',
+                                description: 'Compare options quickly and choose a room that matches your budget and lifestyle.',
+                            },
+                            {
+                                icon: Clock3,
+                                title: 'Fast booking flow',
+                                description: 'Send requests in minutes and track your booking progress without back-and-forth confusion.',
+                            },
+                        ].map(({ icon: Icon, title, description }) => (
+                            <article key={title} className="rounded-3xl border border-black/8 bg-white/70 p-6 shadow-sm dark:border-white/10 dark:bg-white/8">
+                                <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-400/20 dark:text-blue-300">
+                                    <Icon className="size-5" />
+                                </div>
+                                <h2 className="text-lg font-semibold">{title}</h2>
+                                <p className="mt-2 text-sm leading-7 text-stone-600 dark:text-stone-300">{description}</p>
                             </article>
                         ))}
+                    </section>
+
+                    <section className="mt-14 grid gap-8 rounded-[2rem] border border-black/8 bg-white/65 p-6 shadow-sm dark:border-white/10 dark:bg-white/6 lg:grid-cols-[1.05fr_0.95fr] lg:p-8">
+                        <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-stone-500 dark:text-stone-400">Tenant journey</p>
+                            <h2 className="mt-3 text-3xl font-semibold sm:text-4xl" style={{ fontFamily: '"Fraunces", serif' }}>
+                                How renting works on LivingSpace
+                            </h2>
+                            <p className="mt-4 max-w-xl text-sm leading-7 text-stone-600 dark:text-stone-300">
+                                A clear path from browsing to moving in, designed to keep everything simple and transparent.
+                            </p>
+                        </div>
+
+                        <div className="space-y-4">
+                            {[
+                                { step: '01', title: 'Explore rooms', description: 'Search by city, check photos, and shortlist your favorite options.' },
+                                { step: '02', title: 'Send a request', description: 'Submit your booking request with confidence in a few clicks.' },
+                                { step: '03', title: 'Get approved', description: 'Receive updates and finalize your move with the landlord.' },
+                            ].map(({ step, title, description }) => (
+                                <article key={step} className="rounded-2xl border border-black/8 bg-white/80 p-4 dark:border-white/10 dark:bg-white/8">
+                                    <div className="flex items-start gap-3">
+                                        <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-700 text-xs font-bold text-white dark:bg-blue-500">
+                                            {step}
+                                        </span>
+                                        <div>
+                                            <h3 className="font-semibold text-stone-900 dark:text-stone-100">{title}</h3>
+                                            <p className="mt-1 text-sm text-stone-600 dark:text-stone-300">{description}</p>
+                                        </div>
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section className="mt-14 rounded-[2rem] border border-black/8 bg-stone-900 p-7 text-white shadow-lg dark:border-white/10 dark:bg-[#e6edf8] dark:text-stone-900 lg:p-8">
+                        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                            <div>
+                                <p className="text-xs uppercase tracking-[0.24em] text-white/70 dark:text-stone-700">Ready to start?</p>
+                                <h2 className="mt-2 text-3xl font-semibold" style={{ fontFamily: '"Fraunces", serif' }}>
+                                    Discover your next room today.
+                                </h2>
+                                <p className="mt-2 text-sm text-white/80 dark:text-stone-700">
+                                    Join as a tenant and start browsing verified listings right away.
+                                </p>
+                            </div>
+                            <Link
+                                href={canRegister && !auth.user ? register({ query: { role: 'tenant' } }) : primaryHref}
+                                className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-stone-900 transition hover:-translate-y-0.5 dark:bg-stone-900 dark:text-white"
+                            >
+                                {canRegister && !auth.user ? 'Create tenant account' : primaryLabel}
+                                <ArrowRight className="size-4" />
+                            </Link>
+                        </div>
                     </section>
                 </div>
             </div>

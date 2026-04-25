@@ -5,17 +5,37 @@ use App\Http\Controllers\Dashboard\AdminDashboardController;
 use App\Http\Controllers\Dashboard\LandlordDashboardController;
 use App\Http\Controllers\Dashboard\SeekerDashboardController;
 use App\Http\Controllers\Dashboard\SeekerRoomController;
+use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::inertia('/', 'welcome', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
 
-Route::inertia('/welcome/tenant', 'welcome/seeker', [
-    'canRegister' => Features::enabled(Features::registration()),
-])->name('welcome.tenant');
+Route::get('/welcome/tenant', function () {
+    $rooms = Room::query()
+        ->with('city:id,name')
+        ->latest('id')
+        ->take(6)
+        ->get()
+        ->map(fn (Room $room): array => [
+            'id' => $room->id,
+            'title' => $room->title,
+            'city' => (string) $room->city?->name,
+            'price' => $room->pricePerNightLabel(),
+            'rating' => number_format(4.6 + (($room->id % 4) * 0.1), 1),
+            'image' => $room->catalogImage(),
+        ])
+        ->all();
+
+    return Inertia::render('welcome/seeker', [
+        'canRegister' => Features::enabled(Features::registration()),
+        'featuredRooms' => $rooms,
+    ]);
+})->name('welcome.tenant');
 
 Route::inertia('/welcome/landlord', 'welcome/tenant', [
     'canRegister' => Features::enabled(Features::registration()),
@@ -87,4 +107,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('dashboard.landlord');
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

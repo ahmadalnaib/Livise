@@ -1,5 +1,5 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowRight, Building2, CheckCircle2, ImagePlus } from 'lucide-react';
+import { ArrowRight, BadgeDollarSign, Building2, CalendarCheck2, CheckCircle2, ImagePlus, Users } from 'lucide-react';
 import { dashboard, home, login, register } from '@/routes';
 
 const listingSteps = [
@@ -100,6 +100,87 @@ export default function TenantWelcome({ canRegister = true }: TenantProps) {
                                 <p className="mt-2 text-sm leading-7 text-stone-600 dark:text-stone-300">{description}</p>
                             </article>
                         ))}
+                    </section>
+
+                    <section className="mt-14 grid gap-6 lg:grid-cols-3">
+                        {[
+                            {
+                                icon: Users,
+                                title: 'Reach quality tenants',
+                                description: 'Get discovered by serious renters actively searching in your city and price range.',
+                            },
+                            {
+                                icon: BadgeDollarSign,
+                                title: 'Stable monthly income',
+                                description: 'Turn available rooms into a steady income stream with clear listing visibility.',
+                            },
+                            {
+                                icon: CalendarCheck2,
+                                title: 'Simple booking management',
+                                description: 'Review, approve, and manage requests from one place without extra complexity.',
+                            },
+                        ].map(({ icon: Icon, title, description }) => (
+                            <article key={title} className="rounded-3xl border border-black/8 bg-white/70 p-6 shadow-sm dark:border-white/10 dark:bg-white/8">
+                                <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-400/20 dark:text-emerald-300">
+                                    <Icon className="size-5" />
+                                </div>
+                                <h2 className="text-lg font-semibold">{title}</h2>
+                                <p className="mt-2 text-sm leading-7 text-stone-600 dark:text-stone-300">{description}</p>
+                            </article>
+                        ))}
+                    </section>
+
+                    <section className="mt-14 grid gap-8 rounded-[2rem] border border-black/8 bg-white/65 p-6 shadow-sm dark:border-white/10 dark:bg-white/6 lg:grid-cols-[1.05fr_0.95fr] lg:p-8">
+                        <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-stone-500 dark:text-stone-400">Landlord flow</p>
+                            <h2 className="mt-3 text-3xl font-semibold sm:text-4xl" style={{ fontFamily: '"Fraunces", serif' }}>
+                                How listing works on LivingSpace
+                            </h2>
+                            <p className="mt-4 max-w-xl text-sm leading-7 text-stone-600 dark:text-stone-300">
+                                Built for speed and clarity so you can publish quickly and focus on approved renters.
+                            </p>
+                        </div>
+
+                        <div className="space-y-4">
+                            {[
+                                { step: '01', title: 'Create your listing', description: 'Add title, photos, city, and nightly or monthly price details.' },
+                                { step: '02', title: 'Receive requests', description: 'Tenants discover your room and send booking requests directly.' },
+                                { step: '03', title: 'Approve and host', description: 'Review tenant details, approve quickly, and finalize move-in.' },
+                            ].map(({ step, title, description }) => (
+                                <article key={step} className="rounded-2xl border border-black/8 bg-white/80 p-4 dark:border-white/10 dark:bg-white/8">
+                                    <div className="flex items-start gap-3">
+                                        <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-xs font-bold text-white dark:bg-emerald-500">
+                                            {step}
+                                        </span>
+                                        <div>
+                                            <h3 className="font-semibold text-stone-900 dark:text-stone-100">{title}</h3>
+                                            <p className="mt-1 text-sm text-stone-600 dark:text-stone-300">{description}</p>
+                                        </div>
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section className="mt-14 rounded-[2rem] border border-black/8 bg-stone-900 p-7 text-white shadow-lg dark:border-white/10 dark:bg-[#e8f7ef] dark:text-stone-900 lg:p-8">
+                        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                            <div>
+                                <p className="text-xs uppercase tracking-[0.24em] text-white/70 dark:text-stone-700">Ready to publish?</p>
+                                <h2 className="mt-2 text-3xl font-semibold" style={{ fontFamily: '"Fraunces", serif' }}>
+                                    Start listing and grow your rental income.
+                                </h2>
+                                <p className="mt-2 text-sm text-white/80 dark:text-stone-700">
+                                    Create your landlord profile and post your first room in minutes.
+                                </p>
+                            </div>
+                            <Link
+                                href={canRegister && !auth.user ? register({ query: { role: 'landlord' } }) : primaryHref}
+                                className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-stone-900 transition hover:-translate-y-0.5 dark:bg-stone-900 dark:text-white"
+                            >
+                                {canRegister && !auth.user ? 'Create landlord account' : primaryLabel}
+                                <ArrowRight className="size-4" />
+                            </Link>
+                        </div>
                     </section>
                 </div>
             </div>
