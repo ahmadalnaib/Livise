@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { dashboard, home, login, register } from '@/routes';
+import AppLayout from '@/layouts/app-layout';
 
 const listingSteps = [
     {
@@ -293,7 +294,19 @@ function GuestTenantWelcome({
     );
 }
 
-TenantWelcome.layout = null;
+const WelcomeTenantLayout = ({ children }: { children: React.ReactNode }) => {
+    const { props } = usePage() as { props: any };
+    if (props.isLandlordWorkspace && props.auth?.user) {
+        return (
+            <AppLayout breadcrumbs={[{ title: 'Create listing', href: '#' }]}>
+                {children}
+            </AppLayout>
+        );
+    }
+    return <>{children}</>;
+};
+
+TenantWelcome.layout = (page: React.ReactNode) => <WelcomeTenantLayout>{page}</WelcomeTenantLayout>;
 
 function TenantWorkspace({
     authUser,
@@ -928,4 +941,3 @@ function TenantWorkspace({
     );
 }
 
-TenantWelcome.layout = null;
