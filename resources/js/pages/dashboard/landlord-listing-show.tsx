@@ -1,4 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
+import { Star } from 'lucide-react';
 import { edit as editListing } from '@/actions/App/Http/Controllers/LandlordListingController';
 import { Button } from '@/components/ui/button';
 import { landlord } from '@/routes/dashboard';
@@ -25,11 +26,25 @@ type Listing = {
     }>;
 };
 
-type Props = {
-    listing: Listing;
+type Rating = {
+    id: number;
+    rater_name: string;
+    rating: number;
+    comment: string | null;
+    type: string;
+    created_at: string;
 };
 
-export default function LandlordListingShow({ listing }: Props) {
+type Props = {
+    listing: Listing;
+    landlordRating?: {
+        averageRating: number;
+        totalRatings: number;
+    };
+    ratingsReceived?: Rating[];
+};
+
+export default function LandlordListingShow({ listing, landlordRating, ratingsReceived = [] }: Props) {
     return (
         <>
             <Head title={listing.title} />
@@ -42,11 +57,10 @@ export default function LandlordListingShow({ listing }: Props) {
                             <h1 className="mt-1 text-2xl font-semibold">{listing.title}</h1>
                             <div className="mt-3">
                                 <span
-                                    className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
-                                        listing.status === 'confirmed'
+                                    className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${listing.status === 'confirmed'
                                             ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
                                             : 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
-                                    }`}
+                                        }`}
                                 >
                                     {listing.status === 'confirmed' ? 'Confirmed listing' : 'Pending listing'}
                                 </span>
@@ -115,6 +129,51 @@ export default function LandlordListingShow({ listing }: Props) {
                             ))}
                         </div>
                     </div>
+
+                    {/* Landlord Ratings Section */}
+                    {landlordRating && landlordRating.totalRatings > 0 && (
+                        <div className="mt-6 rounded-2xl border border-sidebar-border/70 p-5 dark:border-sidebar-border">
+                            <div className="flex items-center gap-3">
+                                <Star className="size-6 text-yellow-500" />
+                                <div>
+                                    <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Your Rating</h2>
+                                    <p className="text-2xl font-bold">
+                                        {landlordRating.averageRating} / 5
+                                        <span className="ml-2 text-sm font-normal text-muted-foreground">
+                                            ({landlordRating.totalRatings} review{landlordRating.totalRatings !== 1 ? 's' : ''})
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            {ratingsReceived.length > 0 && (
+                                <div className="mt-4 space-y-3">
+                                    {ratingsReceived.map((rating) => (
+                                        <div key={rating.id} className="rounded-xl border border-stone-200 p-3 dark:border-stone-700">
+                                            <div className="flex items-center justify-between">
+                                                <span className="font-medium">{rating.rater_name}</span>
+                                                <div className="flex">
+                                                    {[1, 2, 3, 4, 5].map((star) => (
+                                                        <Star
+                                                            key={star}
+                                                            className={`size-4 ${star <= rating.rating ? 'fill-yellow-400 text-yellow-400' : 'text-stone-300'
+                                                                }`}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            {rating.comment && (
+                                                <p className="mt-2 text-sm text-muted-foreground">{rating.comment}</p>
+                                            )}
+                                            <p className="mt-2 text-xs text-muted-foreground">
+                                                {new Date(rating.created_at).toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </>

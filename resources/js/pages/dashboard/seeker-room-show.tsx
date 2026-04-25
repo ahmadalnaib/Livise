@@ -1,5 +1,5 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { CalendarDays, ChevronLeft, Home, MapPin, MapPinned, Ruler, ShieldCheck, Wifi } from 'lucide-react';
+import { CalendarDays, ChevronLeft, Home, MapPin, MapPinned, Ruler, ShieldCheck, Star, Wifi } from 'lucide-react';
 import dashboardRoutes from '@/routes/dashboard';
 
 const facilityLabels: Record<string, string> = {
@@ -48,10 +48,20 @@ type RoomDetails = {
     listingType: string;
     facilities: string[];
     ownerName: string;
+    ownerId: number;
     pricePerNight: string;
     pricePeriod: string;
     image: string;
     tags: string[];
+};
+
+type Rating = {
+    id: number;
+    rater_name: string;
+    rating: number;
+    comment: string | null;
+    type: string;
+    created_at: string;
 };
 
 type PageProps = {
@@ -62,6 +72,11 @@ type PageProps = {
     canRent: boolean;
     tenantApproved: boolean;
     tenantApprovalMessage: string | null;
+    landlordRating?: {
+        averageRating: number;
+        totalRatings: number;
+    };
+    ratingsReceived?: Rating[];
 };
 
 function addDays(days: number): string {
@@ -80,7 +95,7 @@ function formatDate(value: string): string {
 }
 
 export default function SeekerRoomShow() {
-    const { room, bookedRanges, currentUserRental, currentUserPendingRequest, canRent, tenantApproved, tenantApprovalMessage } = usePage<PageProps>().props;
+    const { room, bookedRanges, currentUserRental, currentUserPendingRequest, canRent, tenantApproved, tenantApprovalMessage, landlordRating, ratingsReceived = [] } = usePage<PageProps>().props;
     const form = useForm({
         starts_at: addDays(2),
         ends_at: addDays(7),
@@ -218,6 +233,48 @@ export default function SeekerRoomShow() {
                                                     </span>
                                                 ))}
                                             </div>
+                                        </div>
+                                    )}
+
+                                    {/* Landlord Rating Section */}
+                                    {landlordRating && landlordRating.totalRatings > 0 && (
+                                        <div className="mt-5 border-t border-sidebar-border/70 pt-5 dark:border-sidebar-border">
+                                            <div className="flex items-center gap-3">
+                                                <Star className="size-5 text-yellow-500" />
+                                                <div>
+                                                    <p className="text-sm font-medium">Landlord: {room.ownerName}</p>
+                                                    <p className="text-lg font-bold">
+                                                        {landlordRating.averageRating} / 5
+                                                        <span className="ml-2 text-sm font-normal text-muted-foreground">
+                                                            ({landlordRating.totalRatings} review{landlordRating.totalRatings !== 1 ? 's' : ''})
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {ratingsReceived.length > 0 && (
+                                                <div className="mt-3 space-y-2">
+                                                    {ratingsReceived.slice(0, 3).map((rating) => (
+                                                        <div key={rating.id} className="rounded-lg border border-stone-200 p-2 text-sm dark:border-stone-700">
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="font-medium">{rating.rater_name}</span>
+                                                                <div className="flex">
+                                                                    {[1, 2, 3, 4, 5].map((star) => (
+                                                                        <Star
+                                                                            key={star}
+                                                                            className={`size-3 ${star <= rating.rating ? 'fill-yellow-400 text-yellow-400' : 'text-stone-300'
+                                                                                }`}
+                                                                        />
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                            {rating.comment && (
+                                                                <p className="mt-1 text-xs text-muted-foreground">{rating.comment}</p>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreLandlordListingRequest;
 use App\Http\Requests\UpdateLandlordListingRequest;
+use App\Models\Rating;
 use App\Models\Room;
 use App\Models\User;
 use App\Support\LandlordListingOptions;
@@ -71,8 +72,29 @@ class LandlordListingController extends Controller
 
         $room->load(['city', 'images']);
 
+        // Get ratings for the landlord (owner of this room)
+        $landlord = $room->owner;
+        $ratingsReceived = $landlord->ratingsReceived()
+            ->with('rater')
+            ->latest()
+            ->take(10)
+            ->get()
+            ->map(fn(Rating $rating): array => [
+                'id' => $rating->id,
+                'rater_name' => $rating->rater->name,
+                'rating' => $rating->rating,
+                'comment' => $rating->comment,
+                'type' => $rating->type,
+                'created_at' => $rating->created_at->toISOString(),
+            ]);
+
         return Inertia::render('dashboard/landlord-listing-show', [
             'listing' => $this->listingPayload($room),
+            'landlordRating' => [
+                'averageRating' => round($landlord->averageRating(), 1),
+                'totalRatings' => $landlord->ratingsReceived()->count(),
+            ],
+            'ratingsReceived' => $ratingsReceived,
         ]);
     }
 
@@ -141,9 +163,9 @@ class LandlordListingController extends Controller
             'listing_type' => $room->listing_type,
             'size_label' => $room->size_label,
             'facilities' => $room->facilities ?? [],
-            'images' => $room->images->map(fn ($image): array => [
+            'images' => $room->images->map(fn($image): array => [
                 'id' => $image->id,
-                'url' => asset('storage/'.$image->path),
+                'url' => asset('storage/' . $image->path),
             ])->values()->all(),
         ];
     }

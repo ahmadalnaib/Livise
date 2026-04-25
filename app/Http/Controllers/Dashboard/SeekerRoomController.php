@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\BookingRequest;
+use App\Models\Rating;
 use App\Models\Rental;
 use App\Models\Room;
 use Illuminate\Http\RedirectResponse;
@@ -19,7 +20,7 @@ class SeekerRoomController extends Controller
         $room->load([
             'city:id,name',
             'owner:id,name',
-            'rentals' => fn ($query) => $query->with('renter:id,name')->orderBy('starts_at'),
+            'rentals' => fn($query) => $query->with('renter:id,name')->orderBy('starts_at'),
         ]);
 
         $currentUserRental = $room->rentals
@@ -31,6 +32,22 @@ class SeekerRoomController extends Controller
             ->where('status', 'pending')
             ->latest('id')
             ->first();
+
+        // Get landlord ratings
+        $landlord = $room->owner;
+        $ratingsReceived = $landlord->ratingsReceived()
+            ->with('rater')
+            ->latest()
+            ->take(10)
+            ->get()
+            ->map(fn(Rating $rating): array => [
+                'id' => $rating->id,
+                'rater_name' => $rating->rater->name,
+                'rating' => $rating->rating,
+                'comment' => $rating->comment,
+                'type' => $rating->type,
+                'created_at' => $rating->created_at->toISOString(),
+            ]);
 
         return Inertia::render('dashboard/seeker-room-show', [
             'room' => [
@@ -45,13 +62,19 @@ class SeekerRoomController extends Controller
                 'listingType' => (string) $room->listing_type,
                 'facilities' => $room->facilities ?? [],
                 'ownerName' => (string) $room->owner?->name,
+                'ownerId' => $room->owner_id,
                 'pricePerNight' => $room->pricePerNightLabel(),
                 'pricePeriod' => (string) $room->price_period,
                 'image' => $room->catalogImage(),
                 'tags' => $room->catalogHighlights(),
             ],
+            'landlordRating' => [
+                'averageRating' => round($landlord->averageRating(), 1),
+                'totalRatings' => $landlord->ratingsReceived()->count(),
+            ],
+            'ratingsReceived' => $ratingsReceived,
             'bookedRanges' => $room->rentals
-                ->map(fn (Rental $rental): array => [
+                ->map(fn(Rental $rental): array => [
                     'id' => $rental->id,
                     'startsAt' => $rental->starts_at->toDateString(),
                     'endsAt' => $rental->ends_at->toDateString(),
