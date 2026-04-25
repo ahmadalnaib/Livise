@@ -123,13 +123,69 @@ test('rented rooms are hidden from tenant room list', function () {
         'ends_at' => now()->addDays(4)->toDateString(),
     ]);
 
+    $myRentedRoom = Room::factory()->create([
+        'owner_id' => $landlord->id,
+        'city_id' => $city->id,
+        'title' => 'My Approved Rental',
+    ]);
+
+    Rental::factory()->create([
+        'room_id' => $myRentedRoom->id,
+        'renter_id' => $tenant->id,
+        'starts_at' => now()->addDays(2)->toDateString(),
+        'ends_at' => now()->addDays(6)->toDateString(),
+    ]);
+
     actingAs($tenant)
         ->get(route('dashboard.tenant'))
         ->assertOk()
         ->assertInertia(
-            fn(Assert $page) => $page
+            fn (Assert $page) => $page
                 ->component('dashboard/seeker')
-                ->where('rooms', fn($rooms): bool => collect($rooms)->pluck('title')->contains('Already Rented Room') === false)
-                ->where('rooms', fn($rooms): bool => collect($rooms)->pluck('title')->contains('Open Room'))
+                ->where('rooms', fn ($rooms): bool => collect($rooms)->pluck('title')->contains('Already Rented Room') === false)
+                ->where('rooms', fn ($rooms): bool => collect($rooms)->pluck('title')->contains('Open Room'))
+        );
+});
+
+test('tenant can view only their rented rooms on dedicated page', function () {
+    $tenant = User::factory()->create(['role' => 'tenant']);
+    $landlord = User::factory()->create(['role' => 'landlord']);
+    $anotherTenant = User::factory()->create(['role' => 'tenant']);
+    $city = City::factory()->create();
+
+    $myRentedRoom = Room::factory()->create([
+        'owner_id' => $landlord->id,
+        'city_id' => $city->id,
+        'title' => 'My Dedicated Rental',
+    ]);
+
+    $otherTenantRental = Room::factory()->create([
+        'owner_id' => $landlord->id,
+        'city_id' => $city->id,
+        'title' => 'Someone Else Rental',
+    ]);
+
+    Rental::factory()->create([
+        'room_id' => $myRentedRoom->id,
+        'renter_id' => $tenant->id,
+        'starts_at' => now()->addDays(2)->toDateString(),
+        'ends_at' => now()->addDays(6)->toDateString(),
+    ]);
+
+    Rental::factory()->create([
+        'room_id' => $otherTenantRental->id,
+        'renter_id' => $anotherTenant->id,
+        'starts_at' => now()->addDays(2)->toDateString(),
+        'ends_at' => now()->addDays(6)->toDateString(),
+    ]);
+
+    actingAs($tenant)
+        ->get(route('dashboard.tenant.rented-rooms'))
+        ->assertOk()
+        ->assertInertia(
+            fn (Assert $page) => $page
+                ->component('dashboard/seeker-rented-rooms')
+                ->where('rentedRooms', fn ($rooms): bool => collect($rooms)->pluck('title')->contains('My Dedicated Rental'))
+                ->where('rentedRooms', fn ($rooms): bool => collect($rooms)->pluck('title')->contains('Someone Else Rental') === false)
         );
 });

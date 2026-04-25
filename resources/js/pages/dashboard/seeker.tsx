@@ -358,7 +358,7 @@ export default function SeekerDashboard() {
                     </div>
                 ) : (
                     <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-                        <div className="rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border dark:bg-sidebar">
+                        <div id="available-rooms" className="rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border dark:bg-sidebar">
                             <div className="mb-4 flex items-center justify-between">
                                 <h2 className="text-lg font-semibold">Available Room List</h2>
                                 <button
@@ -447,43 +447,45 @@ export default function SeekerDashboard() {
                             )}
                         </div>
 
-                        <div className="rounded-xl border border-sidebar-border/70 bg-white p-6 dark:border-sidebar-border dark:bg-sidebar">
-                            <h2 className="text-lg font-semibold">My Favorite Rooms Profile</h2>
-                            <p className="mt-2 text-sm text-muted-foreground">
-                                Add favorite to keep the rooms you love in one place.
-                            </p>
-
-                            {favoriteRooms.length > 0 ? (
-                                <ul className="mt-4 space-y-3">
-                                    {favoriteRooms.map((room) => (
-                                        <li
-                                            key={room.id}
-                                            className="rounded-lg border border-sidebar-border/70 p-2 dark:border-sidebar-border"
-                                        >
-                                            <Link
-                                                href={tenant.rooms.show.url(room.id)}
-                                                className="flex items-center gap-3"
-                                            >
-                                                <img
-                                                    src={room.image}
-                                                    alt={room.title}
-                                                    className="h-12 w-14 rounded-md object-cover"
-                                                />
-                                                <div>
-                                                    <p className="text-sm font-semibold">{room.title}</p>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {room.city} • {room.pricePerNight}
-                                                    </p>
-                                                </div>
-                                            </Link>
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <p className="mt-4 text-sm text-muted-foreground">
-                                    No favorite rooms yet. Tap Add favorite on any room.
+                        <div>
+                            <div className="rounded-xl border border-sidebar-border/70 bg-white p-6 dark:border-sidebar-border dark:bg-sidebar">
+                                <h2 className="text-lg font-semibold">My Favorite Rooms Profile</h2>
+                                <p className="mt-2 text-sm text-muted-foreground">
+                                    Add favorite to keep the rooms you love in one place.
                                 </p>
-                            )}
+
+                                {favoriteRooms.length > 0 ? (
+                                    <ul className="mt-4 space-y-3">
+                                        {favoriteRooms.map((room) => (
+                                            <li
+                                                key={room.id}
+                                                className="rounded-lg border border-sidebar-border/70 p-2 dark:border-sidebar-border"
+                                            >
+                                                <Link
+                                                    href={tenant.rooms.show.url(room.id)}
+                                                    className="flex items-center gap-3"
+                                                >
+                                                    <img
+                                                        src={room.image}
+                                                        alt={room.title}
+                                                        className="h-12 w-14 rounded-md object-cover"
+                                                    />
+                                                    <div>
+                                                        <p className="text-sm font-semibold">{room.title}</p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {room.city} • {room.pricePerNight}
+                                                        </p>
+                                                    </div>
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p className="mt-4 text-sm text-muted-foreground">
+                                        No favorite rooms yet. Tap Add favorite on any room.
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}

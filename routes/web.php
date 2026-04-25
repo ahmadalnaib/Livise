@@ -82,6 +82,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('role:tenant')
         ->name('dashboard.tenant');
 
+    Route::get('dashboard/tenant/rented-rooms', [SeekerDashboardController::class, 'rentedRooms'])
+        ->middleware('role:tenant')
+        ->name('dashboard.tenant.rented-rooms');
+
     Route::post('dashboard/tenant/preferences', [SeekerDashboardController::class, 'storePreferences'])
         ->middleware('role:tenant')
         ->name('dashboard.tenant.preferences.store');
