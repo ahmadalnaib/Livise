@@ -6,6 +6,7 @@ use App\Models\Rental;
 use App\Models\Room;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 
 use function Pest\Laravel\actingAs;
 
@@ -34,10 +35,64 @@ test('admin can view all booking requests table', function () {
     actingAs($admin)
         ->get(route('dashboard.admin'))
         ->assertOk()
-        ->assertSee('All Booking Requests')
-        ->assertSee('Ocean Light Room')
-        ->assertSee($tenant->email)
-        ->assertSee($landlord->email);
+        ->assertInertia(
+            fn(Assert $page) => $page
+                ->component('dashboard/admin')
+                ->where('bookingRequests', fn($requests): bool => collect($requests)->pluck('room.title')->contains('Ocean Light Room'))
+                ->where('bookingRequests', fn($requests): bool => collect($requests)->pluck('tenant.email')->contains($tenant->email))
+                ->where('bookingRequests', fn($requests): bool => collect($requests)->pluck('landlord.email')->contains($landlord->email))
+        );
+});
+
+test('admin can view all users and all rooms tables', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $tenant = User::factory()->create(['role' => 'tenant']);
+    $landlord = User::factory()->create(['role' => 'landlord']);
+    $city = City::factory()->create(['name' => 'Madaba']);
+    $room = Room::factory()->create([
+        'owner_id' => $landlord->id,
+        'city_id' => $city->id,
+        'title' => 'Admin Full List Room',
+    ]);
+
+    actingAs($admin)
+        ->get(route('dashboard.admin'))
+        ->assertOk()
+        ->assertInertia(
+            fn(Assert $page) => $page
+                ->component('dashboard/admin')
+                ->where('stats.allUsers', 3)
+                ->where('stats.allRooms', 1)
+        );
+});
+
+test('admin can access dedicated users and rooms pages', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $landlord = User::factory()->create(['role' => 'landlord']);
+    $city = City::factory()->create(['name' => 'Amman']);
+    Room::factory()->create([
+        'owner_id' => $landlord->id,
+        'city_id' => $city->id,
+        'title' => 'Route Test Room',
+    ]);
+
+    actingAs($admin)
+        ->get(route('dashboard.admin.users.list'))
+        ->assertOk()
+        ->assertInertia(
+            fn(Assert $page) => $page
+                ->component('dashboard/admin-users')
+                ->where('users', fn($users): bool => collect($users)->pluck('role')->contains('landlord'))
+        );
+
+    actingAs($admin)
+        ->get(route('dashboard.admin.rooms.list'))
+        ->assertOk()
+        ->assertInertia(
+            fn(Assert $page) => $page
+                ->component('dashboard/admin-rooms')
+                ->where('rooms', fn($rooms): bool => collect($rooms)->pluck('title')->contains('Route Test Room'))
+        );
 });
 
 test('admin can approve pending booking request and create rental', function () {
@@ -104,4 +159,20 @@ test('landlord dashboard shows approved booking requests', function () {
         ->assertOk()
         ->assertSee('Golden Corner Room')
         ->assertSee($tenant->name);
+});
+
+test('admin can approve pending tenant account', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $tenant = User::factory()->create([
+        'role' => 'tenant',
+        'tenant_approved_at' => null,
+    ]);
+
+    actingAs($admin)
+        ->post(route('dashboard.admin.users.approve', $tenant))
+        ->assertRedirect();
+
+    $tenant->refresh();
+
+    expect($tenant->tenant_approved_at)->not->toBeNull();
 });

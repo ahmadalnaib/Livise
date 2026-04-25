@@ -30,6 +30,7 @@ class CreateNewUser implements CreatesNewUsers
             'name' => $input['name'],
             'email' => $input['email'],
             'role' => $input['role'],
+            'tenant_approved_at' => $input['role'] === 'tenant' ? null : now(),
             'password' => $input['password'],
         ]);
     }

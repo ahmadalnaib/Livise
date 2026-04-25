@@ -1,10 +1,12 @@
 <?php
 
 use App\Models\City;
+use App\Models\Rental;
 use App\Models\Room;
 use App\Models\SeekerSession;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\assertDatabaseMissing;
@@ -94,4 +96,40 @@ test('non tenant cannot use tenant persistence routes', function () {
     assertDatabaseMissing('seeker_sessions', [
         'user_id' => $landlord->id,
     ]);
+});
+
+test('rented rooms are hidden from tenant room list', function () {
+    $tenant = User::factory()->create(['role' => 'tenant']);
+    $landlord = User::factory()->create(['role' => 'landlord']);
+    $anotherTenant = User::factory()->create(['role' => 'tenant']);
+    $city = City::factory()->create();
+
+    $rentedRoom = Room::factory()->create([
+        'owner_id' => $landlord->id,
+        'city_id' => $city->id,
+        'title' => 'Already Rented Room',
+    ]);
+
+    $availableRoom = Room::factory()->create([
+        'owner_id' => $landlord->id,
+        'city_id' => $city->id,
+        'title' => 'Open Room',
+    ]);
+
+    Rental::factory()->create([
+        'room_id' => $rentedRoom->id,
+        'renter_id' => $anotherTenant->id,
+        'starts_at' => now()->addDays(1)->toDateString(),
+        'ends_at' => now()->addDays(4)->toDateString(),
+    ]);
+
+    actingAs($tenant)
+        ->get(route('dashboard.tenant'))
+        ->assertOk()
+        ->assertInertia(
+            fn(Assert $page) => $page
+                ->component('dashboard/seeker')
+                ->where('rooms', fn($rooms): bool => collect($rooms)->pluck('title')->contains('Already Rented Room') === false)
+                ->where('rooms', fn($rooms): bool => collect($rooms)->pluck('title')->contains('Open Room'))
+        );
 });

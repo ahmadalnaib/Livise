@@ -29,6 +29,7 @@ test('new users can register', function () {
     $response->assertRedirect(route('dashboard', absolute: false));
 
     expect(User::first()?->role)->toBe('tenant');
+    expect(User::first()?->tenant_approved_at)->toBeNull();
 });
 
 test('registration requires a valid role', function () {

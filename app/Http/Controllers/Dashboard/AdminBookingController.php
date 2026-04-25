@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\BookingRequest;
 use App\Models\Rental;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +13,25 @@ use Illuminate\Validation\ValidationException;
 
 class AdminBookingController extends Controller
 {
+    public function approveTenant(User $user): RedirectResponse
+    {
+        if ($user->role !== 'tenant') {
+            throw ValidationException::withMessages([
+                'tenant' => 'Only tenant accounts can be approved.',
+            ]);
+        }
+
+        if ($user->tenant_approved_at !== null) {
+            return back();
+        }
+
+        $user->update([
+            'tenant_approved_at' => now(),
+        ]);
+
+        return back();
+    }
+
     public function approve(Request $request, BookingRequest $bookingRequest): RedirectResponse
     {
         if ($bookingRequest->status !== 'pending') {

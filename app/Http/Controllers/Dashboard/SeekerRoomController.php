@@ -24,6 +24,7 @@ class SeekerRoomController extends Controller
 
         $currentUserRental = $room->rentals
             ->firstWhere('renter_id', $request->user()->id);
+        $tenantApproved = $request->user()->tenant_approved_at !== null;
         $currentUserPendingRequest = BookingRequest::query()
             ->where('room_id', $room->id)
             ->where('renter_id', $request->user()->id)
@@ -59,6 +60,10 @@ class SeekerRoomController extends Controller
                 'endsAt' => $currentUserPendingRequest->ends_at->toDateString(),
             ],
             'canRent' => $room->owner_id !== $request->user()->id,
+            'tenantApproved' => $tenantApproved,
+            'tenantApprovalMessage' => $tenantApproved
+                ? null
+                : 'Your account is waiting for admin approval. You can browse rooms, but booking is disabled until approval.',
         ]);
     }
 
@@ -75,9 +80,26 @@ class SeekerRoomController extends Controller
             ]);
         }
 
+        if ($request->user()->tenant_approved_at === null) {
+            throw ValidationException::withMessages([
+                'starts_at' => 'Your account is waiting for admin approval before booking.',
+            ]);
+        }
+
         if ($room->overlapsRentalPeriod($validated['starts_at'], $validated['ends_at'])) {
             throw ValidationException::withMessages([
                 'starts_at' => 'This room is already booked for the selected dates.',
+            ]);
+        }
+
+        $alreadyRequestedThisRoom = BookingRequest::query()
+            ->where('room_id', $room->id)
+            ->where('renter_id', $request->user()->id)
+            ->exists();
+
+        if ($alreadyRequestedThisRoom) {
+            throw ValidationException::withMessages([
+                'starts_at' => 'You can book this room only one time.',
             ]);
         }
 

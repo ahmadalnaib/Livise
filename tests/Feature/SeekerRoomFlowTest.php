@@ -79,3 +79,54 @@ test('tenant cannot rent a room that overlaps an existing booking', function () 
     ])
         ->assertSessionHasErrors('starts_at');
 });
+
+test('tenant can only request the same room once', function () {
+    /** @var User $tenant */
+    $tenant = User::factory()->create(['role' => 'tenant']);
+    $landlord = User::factory()->create(['role' => 'landlord']);
+    $city = City::factory()->create();
+    $room = Room::factory()->create([
+        'owner_id' => $landlord->id,
+        'city_id' => $city->id,
+    ]);
+
+    actingAs($tenant)->post(route('dashboard.tenant.rooms.rent.store', $room), [
+        'starts_at' => now()->addDays(2)->toDateString(),
+        'ends_at' => now()->addDays(7)->toDateString(),
+    ])->assertRedirect();
+
+    actingAs($tenant)->post(route('dashboard.tenant.rooms.rent.store', $room), [
+        'starts_at' => now()->addDays(15)->toDateString(),
+        'ends_at' => now()->addDays(20)->toDateString(),
+    ])->assertSessionHasErrors('starts_at');
+
+    expect(BookingRequest::query()->where('room_id', $room->id)->where('renter_id', $tenant->id)->count())->toBe(1);
+});
+
+test('unapproved tenant can view rooms but cannot send booking request', function () {
+    $tenant = User::factory()->create([
+        'role' => 'tenant',
+        'tenant_approved_at' => null,
+    ]);
+    $landlord = User::factory()->create(['role' => 'landlord']);
+    $city = City::factory()->create();
+    $room = Room::factory()->create([
+        'owner_id' => $landlord->id,
+        'city_id' => $city->id,
+        'title' => 'Pending Approval Room',
+    ]);
+
+    actingAs($tenant)
+        ->get(route('dashboard.tenant.rooms.show', $room))
+        ->assertOk()
+        ->assertSee('waiting for admin approval');
+
+    actingAs($tenant)
+        ->post(route('dashboard.tenant.rooms.rent.store', $room), [
+            'starts_at' => now()->addDays(2)->toDateString(),
+            'ends_at' => now()->addDays(7)->toDateString(),
+        ])
+        ->assertSessionHasErrors('starts_at');
+
+    expect(BookingRequest::query()->where('room_id', $room->id)->where('renter_id', $tenant->id)->count())->toBe(0);
+});

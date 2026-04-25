@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Admin Demo',
                 'role' => 'admin',
+                'tenant_approved_at' => now(),
                 'email_verified_at' => now(),
                 'password' => Hash::make('password'),
             ],
@@ -31,6 +32,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Tenant Demo',
                 'role' => 'tenant',
+                'tenant_approved_at' => now(),
                 'email_verified_at' => now(),
                 'password' => Hash::make('password'),
             ],
@@ -41,6 +43,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Landlord Demo',
                 'role' => 'landlord',
+                'tenant_approved_at' => now(),
                 'email_verified_at' => now(),
                 'password' => Hash::make('password'),
             ],

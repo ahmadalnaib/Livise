@@ -18,11 +18,12 @@ class SeekerDashboardController extends Controller
         $session = $this->seekerSession($request);
         $rooms = Room::query()
             ->with(['city:id,name', 'owner:id,name'])
+            ->doesntHave('rentals')
             ->latest('id')
             ->get();
 
         $roomCards = $rooms
-            ->map(fn (Room $room): array => $this->roomCard($room))
+            ->map(fn(Room $room): array => $this->roomCard($room))
             ->all();
         $availableRoomIds = $rooms->modelKeys();
         $likedRoomIds = collect($session->liked_room_ids ?? [])->intersect($availableRoomIds)->values()->all();
@@ -38,7 +39,7 @@ class SeekerDashboardController extends Controller
                 'questionnaireCompleted' => $session->questionnaire_completed,
             ],
             'favoriteRooms' => collect($roomCards)
-                ->filter(fn (array $room): bool => in_array($room['id'], $likedRoomIds, true))
+                ->filter(fn(array $room): bool => in_array($room['id'], $likedRoomIds, true))
                 ->values()
                 ->all(),
         ]);
@@ -78,10 +79,10 @@ class SeekerDashboardController extends Controller
 
         if ($validated['direction'] === 'right') {
             $likedRoomIds = $likedRoomIds->push($validated['roomId'])->unique()->values();
-            $passedRoomIds = $passedRoomIds->reject(fn (int $roomId): bool => $roomId === $validated['roomId'])->values();
+            $passedRoomIds = $passedRoomIds->reject(fn(int $roomId): bool => $roomId === $validated['roomId'])->values();
         } else {
             $passedRoomIds = $passedRoomIds->push($validated['roomId'])->unique()->values();
-            $likedRoomIds = $likedRoomIds->reject(fn (int $roomId): bool => $roomId === $validated['roomId'])->values();
+            $likedRoomIds = $likedRoomIds->reject(fn(int $roomId): bool => $roomId === $validated['roomId'])->values();
         }
 
         $session->update([

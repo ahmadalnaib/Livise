@@ -34,9 +34,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('role:admin')
         ->name('dashboard.admin');
 
+    Route::get('dashboard/admin/users-list', [AdminDashboardController::class, 'users'])
+        ->middleware('role:admin')
+        ->name('dashboard.admin.users.list');
+
+    Route::get('dashboard/admin/rooms-list', [AdminDashboardController::class, 'rooms'])
+        ->middleware('role:admin')
+        ->name('dashboard.admin.rooms.list');
+
     Route::post('dashboard/admin/bookings/{bookingRequest}/approve', [AdminBookingController::class, 'approve'])
         ->middleware('role:admin')
         ->name('dashboard.admin.bookings.approve');
+
+    Route::post('dashboard/admin/users/{user}/approve', [AdminBookingController::class, 'approveTenant'])
+        ->middleware('role:admin')
+        ->name('dashboard.admin.users.approve');
 
     Route::get('dashboard/tenant', [SeekerDashboardController::class, 'show'])
         ->middleware('role:tenant')
@@ -67,4 +79,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('dashboard.landlord');
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

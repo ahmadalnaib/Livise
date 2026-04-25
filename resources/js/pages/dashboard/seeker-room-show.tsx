@@ -36,6 +36,8 @@ type PageProps = {
     currentUserRental: CurrentUserRental | null;
     currentUserPendingRequest: CurrentUserPendingRequest | null;
     canRent: boolean;
+    tenantApproved: boolean;
+    tenantApprovalMessage: string | null;
 };
 
 function addDays(days: number): string {
@@ -54,7 +56,7 @@ function formatDate(value: string): string {
 }
 
 export default function SeekerRoomShow() {
-    const { room, bookedRanges, currentUserRental, currentUserPendingRequest, canRent } = usePage<PageProps>().props;
+    const { room, bookedRanges, currentUserRental, currentUserPendingRequest, canRent, tenantApproved, tenantApprovalMessage } = usePage<PageProps>().props;
     const form = useForm({
         starts_at: addDays(2),
         ends_at: addDays(7),
@@ -151,6 +153,14 @@ export default function SeekerRoomShow() {
                                         </p>
                                     </div>
                                 ) : null}
+
+                                {!tenantApproved && tenantApprovalMessage ? (
+                                    <div className="mt-6 rounded-2xl border border-amber-300/50 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-950/30">
+                                        <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">
+                                            {tenantApprovalMessage}
+                                        </p>
+                                    </div>
+                                ) : null}
                             </div>
 
                             <form onSubmit={submit} className="mt-8 rounded-3xl border border-sidebar-border/70 bg-black/2 p-5 dark:border-sidebar-border dark:bg-white/3">
@@ -189,7 +199,7 @@ export default function SeekerRoomShow() {
 
                                 <button
                                     type="submit"
-                                    disabled={form.processing || !canRent}
+                                    disabled={form.processing || !canRent || !tenantApproved}
                                     className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     {form.processing ? 'Sending request...' : 'Send request to admin'}
