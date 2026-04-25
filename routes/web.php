@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Dashboard\SeekerDashboardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -29,13 +30,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('role:admin')
         ->name('dashboard.admin');
 
-    Route::inertia('dashboard/seeker', 'dashboard/seeker')
+    Route::get('dashboard/seeker', [SeekerDashboardController::class, 'show'])
         ->middleware('role:seeker')
         ->name('dashboard.seeker');
+
+    Route::post('dashboard/seeker/preferences', [SeekerDashboardController::class, 'storePreferences'])
+        ->middleware('role:seeker')
+        ->name('dashboard.seeker.preferences.store');
+
+    Route::post('dashboard/seeker/swipe', [SeekerDashboardController::class, 'storeSwipe'])
+        ->middleware('role:seeker')
+        ->name('dashboard.seeker.swipe.store');
+
+    Route::post('dashboard/seeker/reset', [SeekerDashboardController::class, 'reset'])
+        ->middleware('role:seeker')
+        ->name('dashboard.seeker.reset');
 
     Route::inertia('dashboard/tenant', 'dashboard/tenant')
         ->middleware('role:tenant')
         ->name('dashboard.tenant');
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

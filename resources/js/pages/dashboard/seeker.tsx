@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { BedDouble, Heart, MapPinned, RotateCcw, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { seeker } from '@/routes/dashboard';
@@ -20,62 +20,46 @@ type PreferenceAnswers = {
     stayLength: string;
 };
 
-const roomDeck: RoomCard[] = [
-    {
-        id: 1,
-        title: 'Sunset Balcony Studio',
-        city: 'Amman',
-        pricePerNight: '$46',
-        tags: ['Wi-Fi', 'Near Downtown', 'Balcony'],
-        image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80',
-    },
-    {
-        id: 2,
-        title: 'Aqaba Sea Breeze Room',
-        city: 'Aqaba',
-        pricePerNight: '$58',
-        tags: ['Sea View', 'Private Bath', 'AC'],
-        image: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80',
-    },
-    {
-        id: 3,
-        title: 'Minimal Corner Loft',
-        city: 'Irbid',
-        pricePerNight: '$39',
-        tags: ['Quiet Area', 'Kitchen', 'Long Stay'],
-        image: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80',
-    },
-    {
-        id: 4,
-        title: 'Olive Garden Room',
-        city: 'Jerash',
-        pricePerNight: '$41',
-        tags: ['Parking', 'Garden', 'Fast Check-in'],
-        image: 'https://images.unsplash.com/photo-1464890100898-a385f744067f?auto=format&fit=crop&w=1200&q=80',
-    },
-];
+type SeekerSession = {
+    answers: PreferenceAnswers | null;
+    likedRoomIds: number[];
+    passedRoomIds: number[];
+    currentIndex: number;
+    questionnaireCompleted: boolean;
+};
+
+type PageProps = {
+    rooms: RoomCard[];
+    favoriteRooms: RoomCard[];
+    seekerSession: SeekerSession;
+};
+
+const emptyAnswers: PreferenceAnswers = {
+    roomSize: '',
+    budget: '',
+    roommatePreference: '',
+    preferredCityType: '',
+    stayLength: '',
+};
 
 export default function SeekerDashboard() {
-    const [isQuestionnaireCompleted, setIsQuestionnaireCompleted] = useState(false);
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [likedCount, setLikedCount] = useState(0);
-    const [passedCount, setPassedCount] = useState(0);
-    const [favoriteRooms, setFavoriteRooms] = useState<RoomCard[]>([]);
-    const [answers, setAnswers] = useState<PreferenceAnswers>({
-        roomSize: '',
-        budget: '',
-        roommatePreference: '',
-        preferredCityType: '',
-        stayLength: '',
-    });
+    const { rooms, seekerSession, favoriteRooms } = usePage<PageProps>().props;
+    const [answers, setAnswers] = useState<PreferenceAnswers>(seekerSession.answers ?? emptyAnswers);
 
-    const currentRoom = roomDeck[currentIndex];
-    const remainingCount = roomDeck.length - currentIndex;
+    const currentRoom = rooms[seekerSession.currentIndex];
+    const remainingCount = rooms.length - seekerSession.currentIndex;
+    const likedCount = seekerSession.likedRoomIds.length;
+    const passedCount = seekerSession.passedRoomIds.length;
+    const isQuestionnaireCompleted = seekerSession.questionnaireCompleted;
     const hasAnsweredAllQuestions = Object.values(answers).every(Boolean);
 
     const completion = useMemo(() => {
-        return Math.round((currentIndex / roomDeck.length) * 100);
-    }, [currentIndex]);
+        if (rooms.length === 0) {
+            return 0;
+        }
+
+        return Math.round((seekerSession.currentIndex / rooms.length) * 100);
+    }, [rooms.length, seekerSession.currentIndex]);
 
     const handleAnswerChange = (field: keyof PreferenceAnswers, value: string): void => {
         setAnswers((previousAnswers) => ({
@@ -91,46 +75,45 @@ export default function SeekerDashboard() {
             return;
         }
 
-        setIsQuestionnaireCompleted(true);
+        router.post(seeker.preferences.store(), answers, {
+            preserveScroll: true,
+            preserveState: false,
+        });
     };
 
-    const handleLike = useCallback((): void => {
-        if (!currentRoom) {
-            return;
-        }
-
-        setLikedCount((count) => count + 1);
-        setFavoriteRooms((rooms) => {
-            if (rooms.some((room) => room.id === currentRoom.id)) {
-                return rooms;
+    const submitSwipe = useCallback(
+        (direction: 'left' | 'right'): void => {
+            if (!currentRoom) {
+                return;
             }
 
-            return [currentRoom, ...rooms];
-        });
-        setCurrentIndex((index) => index + 1);
-    }, [currentRoom]);
+            router.post(
+                seeker.swipe.store(),
+                {
+                    roomId: currentRoom.id,
+                    direction,
+                },
+                {
+                    preserveScroll: true,
+                    preserveState: false,
+                },
+            );
+        },
+        [currentRoom],
+    );
+
+    const handleLike = useCallback((): void => {
+        submitSwipe('right');
+    }, [submitSwipe]);
 
     const handlePass = useCallback((): void => {
-        if (!currentRoom) {
-            return;
-        }
-
-        setPassedCount((count) => count + 1);
-        setCurrentIndex((index) => index + 1);
-    }, [currentRoom]);
+        submitSwipe('left');
+    }, [submitSwipe]);
 
     const resetDeck = (): void => {
-        setCurrentIndex(0);
-        setLikedCount(0);
-        setPassedCount(0);
-        setFavoriteRooms([]);
-        setIsQuestionnaireCompleted(false);
-        setAnswers({
-            roomSize: '',
-            budget: '',
-            roommatePreference: '',
-            preferredCityType: '',
-            stayLength: '',
+        router.post(seeker.reset(), {}, {
+            preserveScroll: true,
+            preserveState: false,
         });
     };
 
