@@ -85,6 +85,9 @@ class LandlordDashboardController extends Controller
                 'postal_code' => $room->postal_code,
                 'price_per_night' => $room->price_per_night,
                 'price_period' => $room->price_period,
+                'image' => $room->images->first()?->path
+                    ? asset('storage/' . $room->images->first()->path)
+                    : null,
                 'image_count' => $room->images->count(),
                 'facilities' => is_array($room->facilities) ? $room->facilities : [],
             ])->values()->all(),

@@ -1,6 +1,5 @@
-import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowRight, CheckCircle2, Home, KeyRound, MapPin, Phone, Play, X, Zap } from 'lucide-react';
-import { useState } from 'react';
+import { Head, Link } from '@inertiajs/react';
+import { ArrowRight, CheckCircle2, Headphones, Home, KeyRound, MapPin, MessageCircle, Phone, Play, Zap } from 'lucide-react';
 import { landlord, tenant } from '@/routes/welcome';
 
 type WelcomeProps = {
@@ -8,30 +7,6 @@ type WelcomeProps = {
 };
 
 export default function Welcome({ canRegister = true }: WelcomeProps) {
-    const [showSeniorModal, setShowSeniorModal] = useState(true);
-    const [showForm, setShowForm] = useState(false);
-    const form = useForm({
-        name: '',
-        phone: '',
-        email: '',
-        address: '',
-        city: '',
-        notes: '',
-    });
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        form.post(landlordRequestStoreUrl(), {
-            onSuccess: () => {
-                setShowSeniorModal(false);
-            },
-        });
-    };
-
-    const landlordRequestStoreUrl = () => {
-        return '/landlord-request';
-    };
-
     return (
         <>
             <Head title="LivingSpace - Find & List Rooms">
@@ -41,152 +16,6 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                     rel="stylesheet"
                 />
             </Head>
-
-            {/* Senior/Landlord Welcome Modal - Opens automatically */}
-            {showSeniorModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-                    <div className="relative z-10 w-full max-w-lg max-h-[70vh] overflow-y-auto rounded-3xl bg-white dark:bg-stone-900 shadow-2xl">
-                        <div className="p-5 text-center">
-                            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
-                                <Home className="size-8" />
-                            </div>
-                            <h2 className="text-2xl font-bold text-stone-900 dark:text-white">
-                                Do You Have a Room to Rent?
-                            </h2>
-                            <p className="mt-2 text-base text-stone-600 dark:text-stone-400">
-                                LivingSpace helps you find great tenants for your room.
-                            </p>
-
-                            {!showForm ? (
-                                <div className="mt-8 grid gap-4">
-                                    <button
-                                        onClick={() => setShowForm(true)}
-                                        className="flex items-center justify-center gap-2 rounded-xl bg-green-600 px-5 py-3 text-base font-semibold text-white transition hover:bg-green-700"
-                                    >
-                                        <Home className="size-5" />
-                                        Yes, I want to list my room
-                                    </button>
-
-                                    <button
-                                        onClick={() => setShowSeniorModal(false)}
-                                        className="text-sm text-stone-500 underline transition hover:text-stone-700 dark:hover:text-stone-300"
-                                    >
-                                        No thanks, I just want to browse
-                                    </button>
-                                </div>
-                            ) : (
-                                <form onSubmit={handleSubmit} className="mt-4 text-left">
-                                    <div className="grid gap-3 sm:grid-cols-2">
-                                        <div className="sm:col-span-2">
-                                            <label className="block text-sm font-medium text-stone-700 dark:text-stone-300">Your Name *</label>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={form.data.name}
-                                                onChange={(e) => form.setData('name', e.target.value)}
-                                                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 dark:border-stone-600 dark:bg-stone-800"
-                                                placeholder="Enter your name"
-                                            />
-                                        </div>
-                                        <div className="sm:col-span-2">
-                                            <label className="block text-sm font-medium text-stone-700 dark:text-stone-300">Phone Number *</label>
-                                            <input
-                                                type="tel"
-                                                required
-                                                value={form.data.phone}
-                                                onChange={(e) => form.setData('phone', e.target.value)}
-                                                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 dark:border-stone-600 dark:bg-stone-800"
-                                                placeholder="+49 123 456 789"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-stone-700 dark:text-stone-300">Email</label>
-                                            <input
-                                                type="email"
-                                                value={form.data.email}
-                                                onChange={(e) => form.setData('email', e.target.value)}
-                                                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 dark:border-stone-600 dark:bg-stone-800"
-                                                placeholder="your@email.com"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-stone-700 dark:text-stone-300">City</label>
-                                            <input
-                                                type="text"
-                                                value={form.data.city}
-                                                onChange={(e) => form.setData('city', e.target.value)}
-                                                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 dark:border-stone-600 dark:bg-stone-800"
-                                                placeholder="Berlin"
-                                            />
-                                        </div>
-                                        <div className="sm:col-span-2">
-                                            <label className="block text-sm font-medium text-stone-700 dark:text-stone-300">Address</label>
-                                            <input
-                                                type="text"
-                                                value={form.data.address}
-                                                onChange={(e) => form.setData('address', e.target.value)}
-                                                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 dark:border-stone-600 dark:bg-stone-800"
-                                                placeholder="Your room address"
-                                            />
-                                        </div>
-                                        <div className="sm:col-span-2">
-                                            <label className="block text-sm font-medium text-stone-700 dark:text-stone-300">Notes</label>
-                                            <textarea
-                                                value={form.data.notes}
-                                                onChange={(e) => form.setData('notes', e.target.value)}
-                                                rows={2}
-                                                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 dark:border-stone-600 dark:bg-stone-800"
-                                                placeholder="Tell us about your room..."
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="mt-4 flex gap-3">
-                                        <button
-                                            type="submit"
-                                            disabled={form.processing}
-                                            className="flex-1 rounded-xl bg-green-600 px-6 py-3 text-lg font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
-                                        >
-                                            {form.processing ? 'Sending...' : 'Submit Request'}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowForm(false)}
-                                            className="rounded-xl border border-stone-300 px-6 py-3 text-stone-600 transition hover:bg-stone-100 dark:border-stone-600 dark:text-stone-400"
-                                        >
-                                            Back
-                                        </button>
-                                    </div>
-                                </form>
-                            )}
-
-                            <div className="mt-8 border-t border-stone-200 pt-6 dark:border-stone-700">
-                                <p className="text-sm font-medium text-stone-500 dark:text-stone-400">
-                                    Need help? Contact us:
-                                </p>
-                                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:justify-center">
-                                    <a
-                                        href="tel:+491234567890"
-                                        className="inline-flex items-center gap-2 rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-700 transition hover:border-primary hover:bg-primary/5 dark:border-stone-700 dark:text-stone-300"
-                                    >
-                                        <Phone className="size-4" />
-                                        +49 123 456 7890
-                                    </a>
-                                    <a
-                                        href="https://maps.google.com/?q=Alexanderplatz+1+10178+Berlin+Germany"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-2 rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-700 transition hover:border-primary hover:bg-primary/5 dark:border-stone-700 dark:text-stone-300"
-                                    >
-                                        <MapPin className="size-4" />
-                                        Alexanderplatz 1, 10178 Berlin
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             <div className="min-h-screen bg-gradient-to-br from-[#f5f1ea] via-white to-[#f5f1ea] text-stone-900 dark:from-[#101826] dark:via-[#151e2e] dark:to-[#101826] dark:text-stone-100">
                 <div
@@ -517,6 +346,42 @@ export default function Welcome({ canRegister = true }: WelcomeProps) {
                                     </div>
                                 </details>
                             ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Fixed Hotline Section */}
+                <div className="fixed bottom-6 right-6 z-50">
+                    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-primary/80 p-5 text-white shadow-2xl dark:from-primary/90 dark:to-primary/70">
+                        <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+                        <div className="relative flex flex-col items-center gap-4">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+                                    <Headphones className="size-6" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold">Need Help?</h3>
+                                    <p className="text-xs text-white/80">24/7 Support</p>
+                                </div>
+                            </div>
+                            <div className="flex gap-2">
+                                <a
+                                    href="tel:+491234567890"
+                                    className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-primary transition hover:bg-white/90"
+                                >
+                                    <Phone className="size-4" />
+                                    Call
+                                </a>
+                                <a
+                                    href="https://wa.me/491234567890"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 rounded-lg border border-white/30 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+                                >
+                                    <MessageCircle className="size-4" />
+                                    WhatsApp
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

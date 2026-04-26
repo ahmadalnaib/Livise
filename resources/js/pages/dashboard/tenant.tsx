@@ -124,8 +124,8 @@ export default function TenantDashboard({ activeFilter, stats, listings, ratings
                                         >
                                             <Star
                                                 className={`size-8 ${star <= ratingForm.data.rating
-                                                        ? 'fill-yellow-400 text-yellow-400'
-                                                        : 'text-stone-300'
+                                                    ? 'fill-yellow-400 text-yellow-400'
+                                                    : 'text-stone-300'
                                                     }`}
                                             />
                                         </button>
@@ -241,8 +241,8 @@ export default function TenantDashboard({ activeFilter, stats, listings, ratings
                                     onClick={() => !tenant.already_rated && handleOpenRatingModal(tenant)}
                                     disabled={tenant.already_rated}
                                     className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm ${tenant.already_rated
-                                            ? 'bg-stone-100 text-stone-400 dark:bg-stone-800 dark:text-stone-500'
-                                            : 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                        ? 'bg-stone-100 text-stone-400 dark:bg-stone-800 dark:text-stone-500'
+                                        : 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
                                         }`}
                                 >
                                     <Star className="size-4" />
@@ -276,6 +276,9 @@ export default function TenantDashboard({ activeFilter, stats, listings, ratings
                         ) : (
                             listings.map((listing) => (
                                 <article key={listing.id} className="rounded-2xl border border-sidebar-border/70 p-5 dark:border-sidebar-border">
+                                    {listing.image && (
+                                        <img src={listing.image} alt={listing.title} className="mb-4 h-40 w-full rounded-xl object-cover" />
+                                    )}
                                     <div className="flex items-start justify-between gap-4">
                                         <div>
                                             <div className="flex flex-wrap items-center gap-2">
@@ -284,8 +287,8 @@ export default function TenantDashboard({ activeFilter, stats, listings, ratings
                                                 </p>
                                                 <span
                                                     className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${listing.status === 'confirmed'
-                                                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
-                                                            : 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
+                                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
+                                                        : 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
                                                         }`}
                                                 >
                                                     {listing.status === 'confirmed' ? 'Confirmed' : 'Pending'}
