@@ -110,7 +110,33 @@ test('landlord can view an existing listing in the view screen', function () {
             ->where('listing.status', 'pending')
             ->where('listing.title', $room->title)
             ->where('listing.price_period', 'month')
+            ->where('listing.images.0.url', asset('images/default-room.svg'))
             ->where('listing.city', $room->city?->name),
+        );
+});
+
+test('landlord listing view always uses the shared default image', function () {
+    Storage::fake('public');
+
+    $landlord = User::factory()->create([
+        'role' => 'landlord',
+    ]);
+
+    $room = Room::factory()->create([
+        'owner_id' => $landlord->id,
+    ]);
+
+    $room->images()->create([
+        'path' => UploadedFile::fake()->image('room-photo.png')->store("room-images/{$landlord->id}/{$room->id}", 'public'),
+        'sort_order' => 0,
+    ]);
+
+    $this->actingAs($landlord)
+        ->get(route('dashboard.landlord.listings.show', $room))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('dashboard/landlord-listing-show')
+            ->where('listing.images.0.url', asset('images/default-room.svg')),
         );
 });
 

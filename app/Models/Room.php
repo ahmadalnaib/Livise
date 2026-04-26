@@ -155,6 +155,22 @@ class Room extends Model
         return $images[$this->id % count($images)];
     }
 
+    public function defaultListingImageUrl(): string
+    {
+        return asset('images/default-room.svg');
+    }
+
+    public function primaryImageUrl(): string
+    {
+        $path = $this->images->first()?->path;
+
+        if (! is_string($path) || $path === '') {
+            return $this->defaultListingImageUrl();
+        }
+
+        return asset('storage/'.$path);
+    }
+
     public function overlapsRentalPeriod(string $startsAt, string $endsAt): bool
     {
         return $this->rentals()

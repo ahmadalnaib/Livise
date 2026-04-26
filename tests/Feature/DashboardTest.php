@@ -61,10 +61,32 @@ test('landlord can access only landlord dashboard', function () {
             ->has('listings', 1)
             ->where('listings.0.title', 'Dashboard Listing')
             ->where('listings.0.status', 'pending')
+            ->where('listings.0.image', asset('images/default-room.svg'))
             ->where('listings.0.price_period', 'month'),
         );
     $this->get(route('dashboard.admin'))->assertForbidden();
     $this->get(route('dashboard.tenant'))->assertForbidden();
+});
+
+test('landlord dashboard listings fall back to a shared default image', function () {
+    $landlord = User::factory()->create(['role' => 'landlord']);
+    $city = City::factory()->create(['name' => 'Munich']);
+
+    Room::factory()->count(2)->create([
+        'owner_id' => $landlord->id,
+        'city_id' => $city->id,
+        'status' => 'confirmed',
+    ]);
+
+    $this->actingAs($landlord)
+        ->get(route('dashboard.landlord'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('dashboard/tenant')
+            ->has('listings', 2)
+            ->where('listings.0.image', asset('images/default-room.svg'))
+            ->where('listings.1.image', asset('images/default-room.svg')),
+        );
 });
 
 test('landlord dashboard can filter pending and confirmed listings', function () {
