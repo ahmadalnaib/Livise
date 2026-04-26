@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, BedDouble, Heart, MapPinned, RotateCcw, Sparkles
 import { useMemo, useState } from 'react';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import dashboardRoutes from '@/routes/dashboard';
+import { show as roomShow } from '@/routes/dashboard/tenant/rooms';
 import 'leaflet/dist/leaflet.css';
 
 type RoomCard = {
@@ -536,13 +537,20 @@ export default function SeekerDashboard() {
                                         const coordinates = cityCoordinates[room.city.toLowerCase()];
 
                                         return (
-                                            <Marker key={room.id} position={coordinates} icon={L.divIcon({
-                                                html: `<img src="${room.image}" alt="${room.title}" class="h-10 w-10 rounded-full object-cover border-2 border-white shadow-lg" />`,
-                                                className: '',
-                                                iconSize: [40, 40],
-                                                iconAnchor: [20, 40],
-                                                popupAnchor: [0, -40],
-                                            })}>
+                                            <Marker
+                                                key={room.id}
+                                                position={coordinates}
+                                                icon={L.divIcon({
+                                                    html: `<img src="${room.image}" alt="${room.title}" class="h-10 w-10 rounded-full object-cover border-2 border-white shadow-lg cursor-pointer" />`,
+                                                    className: '',
+                                                    iconSize: [40, 40],
+                                                    iconAnchor: [20, 40],
+                                                    popupAnchor: [0, -40],
+                                                })}
+                                                eventHandlers={{
+                                                    click: () => router.visit(roomShow(room.id).url),
+                                                }}
+                                            >
                                                 <Popup>
                                                     <p className="font-semibold">{room.title}</p>
                                                     <p>{room.city}</p>
