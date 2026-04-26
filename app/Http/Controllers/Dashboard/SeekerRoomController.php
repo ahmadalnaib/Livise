@@ -20,7 +20,7 @@ class SeekerRoomController extends Controller
         $room->load([
             'city:id,name',
             'owner:id,name',
-            'rentals' => fn($query) => $query->with('renter:id,name')->orderBy('starts_at'),
+            'rentals' => fn ($query) => $query->with('renter:id,name')->orderBy('starts_at'),
         ]);
 
         $currentUserRental = $room->rentals
@@ -40,7 +40,7 @@ class SeekerRoomController extends Controller
             ->latest()
             ->take(10)
             ->get()
-            ->map(fn(Rating $rating): array => [
+            ->map(fn (Rating $rating): array => [
                 'id' => $rating->id,
                 'rater_name' => $rating->rater->name,
                 'rating' => $rating->rating,
@@ -60,7 +60,7 @@ class SeekerRoomController extends Controller
                 'postalCode' => (string) $room->postal_code,
                 'sizeLabel' => (string) $room->size_label,
                 'listingType' => (string) $room->listing_type,
-                'facilities' => $room->facilities ?? [],
+                'facilities' => is_array($room->facilities) ? $room->facilities : [],
                 'ownerName' => (string) $room->owner?->name,
                 'ownerId' => $room->owner_id,
                 'pricePerNight' => $room->pricePerNightLabel(),
@@ -74,7 +74,7 @@ class SeekerRoomController extends Controller
             ],
             'ratingsReceived' => $ratingsReceived,
             'bookedRanges' => $room->rentals
-                ->map(fn(Rental $rental): array => [
+                ->map(fn (Rental $rental): array => [
                     'id' => $rental->id,
                     'startsAt' => $rental->starts_at->toDateString(),
                     'endsAt' => $rental->ends_at->toDateString(),

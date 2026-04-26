@@ -162,7 +162,7 @@ class LandlordListingController extends Controller
             'price_period' => $room->price_period,
             'listing_type' => $room->listing_type,
             'size_label' => $room->size_label,
-            'facilities' => $room->facilities ?? [],
+            'facilities' => is_array($room->facilities) ? $room->facilities : [],
             'images' => $room->images->map(fn($image): array => [
                 'id' => $image->id,
                 'url' => asset('storage/' . $image->path),

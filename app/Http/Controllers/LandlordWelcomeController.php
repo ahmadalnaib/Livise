@@ -37,7 +37,7 @@ class LandlordWelcomeController extends Controller
                     ->with(['city', 'images'])
                     ->latest()
                     ->get()
-                    ->map(fn(Room $room): array => [
+                    ->map(fn (Room $room): array => [
                         'id' => $room->id,
                         'status' => $room->status,
                         'title' => $room->title,
@@ -49,7 +49,7 @@ class LandlordWelcomeController extends Controller
                         'price_period' => $room->price_period,
                         'size_label' => $room->size_label,
                         'contact_email' => $room->contact_email,
-                        'facilities' => $room->facilities ?? [],
+                        'facilities' => is_array($room->facilities) ? $room->facilities : [],
                         'image_count' => $room->images->count(),
                     ])
                     ->values()

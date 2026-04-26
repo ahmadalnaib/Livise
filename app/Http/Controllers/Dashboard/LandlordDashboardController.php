@@ -86,7 +86,7 @@ class LandlordDashboardController extends Controller
                 'price_per_night' => $room->price_per_night,
                 'price_period' => $room->price_period,
                 'image_count' => $room->images->count(),
-                'facilities' => $room->facilities ?? [],
+                'facilities' => is_array($room->facilities) ? $room->facilities : [],
             ])->values()->all(),
         ]);
     }
