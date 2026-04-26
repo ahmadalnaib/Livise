@@ -26,7 +26,7 @@ test('new users can register', function () {
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect(route('onboarding', absolute: false));
 
     expect(User::first()?->role)->toBe('tenant');
     expect(User::first()?->tenant_approved_at)->toBeNull();

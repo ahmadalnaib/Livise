@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Models\BookingRequest;
 use App\Models\Rating;
 use App\Models\Rental;
 use App\Models\Room;
@@ -63,6 +64,22 @@ class LandlordDashboardController extends Controller
             ->values()
             ->all();
 
+        $bookingRequests = BookingRequest::query()
+            ->where('landlord_id', $landlord->id)
+            ->with(['room:id,title', 'renter:id,name'])
+            ->latest()
+            ->get()
+            ->map(fn (BookingRequest $bookingRequest): array => [
+                'id' => $bookingRequest->id,
+                'status' => $bookingRequest->status,
+                'room_title' => $bookingRequest->room?->title,
+                'tenant_name' => $bookingRequest->renter?->name,
+                'starts_at' => $bookingRequest->starts_at?->toDateString(),
+                'ends_at' => $bookingRequest->ends_at?->toDateString(),
+            ])
+            ->values()
+            ->all();
+
         return Inertia::render('dashboard/tenant', [
             'activeFilter' => in_array($statusFilter, $allowedFilters, true) ? $statusFilter : 'all',
             'stats' => [
@@ -76,6 +93,7 @@ class LandlordDashboardController extends Controller
             ],
             'ratingsReceived' => $ratingsReceived,
             'tenantRatingQualities' => Rating::TENANT_QUALITIES,
+            'bookingRequests' => $bookingRequests,
             'recentTenants' => $recentTenants,
             'listings' => $listings->map(fn (Room $room): array => [
                 'id' => $room->id,
