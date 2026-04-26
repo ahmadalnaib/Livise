@@ -32,7 +32,7 @@ Route::get('/welcome/tenant', function (Request $request) {
         ->latest('id')
         ->take(6)
         ->get()
-        ->map(fn (Room $room): array => [
+        ->map(fn(Room $room): array => [
             'id' => $room->id,
             'title' => $room->title,
             'city' => (string) $room->city?->name,
@@ -162,4 +162,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('landlord.listings.update');
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

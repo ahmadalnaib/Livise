@@ -94,11 +94,10 @@ export default function Onboarding({
                                         key={lang}
                                         type="button"
                                         onClick={() => toggleItem('languages', lang)}
-                                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${
-                                            (data.languages || []).includes(lang)
+                                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${(data.languages || []).includes(lang)
                                                 ? 'bg-primary text-white'
                                                 : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                                        }`}
+                                            }`}
                                     >
                                         {(data.languages || []).includes(lang) && <Check className="size-3 inline mr-1" />}
                                         {lang}
@@ -133,11 +132,10 @@ export default function Onboarding({
                                         key={skill}
                                         type="button"
                                         onClick={() => toggleItem('skills', skill)}
-                                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${
-                                            (data.skills || []).includes(skill)
+                                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${(data.skills || []).includes(skill)
                                                 ? 'bg-green-600 text-white'
                                                 : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                                        }`}
+                                            }`}
                                     >
                                         {(data.skills || []).includes(skill) && <Check className="size-3 inline mr-1" />}
                                         {skill}
@@ -172,11 +170,10 @@ export default function Onboarding({
                                         key={hobby}
                                         type="button"
                                         onClick={() => toggleItem('hobbies', hobby)}
-                                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${
-                                            (data.hobbies || []).includes(hobby)
+                                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${(data.hobbies || []).includes(hobby)
                                                 ? 'bg-amber-600 text-white'
                                                 : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                                        }`}
+                                            }`}
                                     >
                                         {(data.hobbies || []).includes(hobby) && <Check className="size-3 inline mr-1" />}
                                         {hobby}

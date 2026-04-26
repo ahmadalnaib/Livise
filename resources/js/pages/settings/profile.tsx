@@ -237,8 +237,8 @@ export default function Profile({
                                                 <Star
                                                     key={star}
                                                     className={`size-4 ${star <= rating.rating
-                                                            ? 'fill-yellow-400 text-yellow-400'
-                                                            : 'text-stone-300'
+                                                        ? 'fill-yellow-400 text-yellow-400'
+                                                        : 'text-stone-300'
                                                         }`}
                                                 />
                                             ))}
@@ -272,8 +272,8 @@ export default function Profile({
                                                 <Star
                                                     key={star}
                                                     className={`size-4 ${star <= rating.rating
-                                                            ? 'fill-yellow-400 text-yellow-400'
-                                                            : 'text-stone-300'
+                                                        ? 'fill-yellow-400 text-yellow-400'
+                                                        : 'text-stone-300'
                                                         }`}
                                                 />
                                             ))}
