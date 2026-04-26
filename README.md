@@ -14,7 +14,7 @@ A modern Laravel application for room rentals with landlord and tenant matching.
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone <https://github.com/ahmadalnaib/living-room.git>
 cd Living-room
 ```
 
@@ -113,6 +113,8 @@ php artisan wayfinder:generate
 ## Project Structure
 
 - `app/` - Core application code
+  - `Http/Controllers/` - Controllers
+  - `Models/` - Eloquent models
 - `resources/js/pages/` - Inertia.js React pages
 - `resources/js/components/` - Reusable React components
 - `routes/web.php` - Web routes
@@ -121,11 +123,11 @@ php artisan wayfinder:generate
 
 ## Tech Stack
 
-- **Backend**: Laravel 13, PHP 8.4
-- **Frontend**: React 19, Inertia.js v3, Tailwind CSS v4
-- **Auth**: Laravel Fortify
-- **Testing**: Pest PHP
-- **Build**: Vite
+- **Backend**: [Laravel 13](https://laravel.com/), PHP 8.4
+- **Frontend**: [React 19](https://react.dev/), [Inertia.js v3](https://inertiajs.com/), [Tailwind CSS v4](https://tailwindcss.com/)
+- **Auth**: [Laravel Fortify](https://laravel.com/docs/fortify)
+- **Testing**: [Pest PHP](https://pestphp.com/)
+- **Build**: [Vite](https://vitejs.dev/)
 
 ## Deployment
 
