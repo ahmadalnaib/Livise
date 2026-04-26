@@ -37,6 +37,7 @@ type Listing = {
     listing_type: string;
     size_label: string;
     facilities: string[];
+    volunteer_help_needed: string[];
     images: Array<{
         id: number;
         url: string;
@@ -49,6 +50,7 @@ type Props = {
     pricePeriodOptions: Option[];
     listingTypeOptions: Option[];
     facilityOptions: Option[];
+    volunteerHelpOptions: Option[];
 };
 
 type ListingForm = {
@@ -63,6 +65,7 @@ type ListingForm = {
     listing_type: string;
     size_label: string;
     facilities: string[];
+    volunteer_help_needed: string[];
     photos: File[];
 };
 
@@ -77,6 +80,7 @@ export default function LandlordListingEdit({
     pricePeriodOptions,
     listingTypeOptions,
     facilityOptions,
+    volunteerHelpOptions,
 }: Props) {
     const [isDragActive, setIsDragActive] = useState(false);
     const [photoPreviews, setPhotoPreviews] = useState<PhotoPreview[]>([]);
@@ -98,6 +102,7 @@ export default function LandlordListingEdit({
         listing_type: listing.listing_type,
         size_label: listing.size_label,
         facilities: listing.facilities,
+        volunteer_help_needed: listing.volunteer_help_needed,
         photos: [],
     });
 
@@ -183,6 +188,18 @@ export default function LandlordListingEdit({
         );
     }
 
+    function toggleVolunteerHelp(optionValue: string, checked: boolean): void {
+        if (checked) {
+            form.setData('volunteer_help_needed', [...form.data.volunteer_help_needed, optionValue]);
+            return;
+        }
+
+        form.setData(
+            'volunteer_help_needed',
+            form.data.volunteer_help_needed.filter((help) => help !== optionValue),
+        );
+    }
+
     function confirmLeave(): void {
         setShowLeaveDialog(false);
         skipLeaveGuardRef.current = true;
@@ -221,11 +238,10 @@ export default function LandlordListingEdit({
                             <h1 className="text-2xl font-semibold">{listing.title}</h1>
                             <div className="mt-3">
                                 <span
-                                    className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
-                                        listing.status === 'confirmed'
+                                    className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${listing.status === 'confirmed'
                                             ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
                                             : 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
-                                    }`}
+                                        }`}
                                 >
                                     {listing.status === 'confirmed' ? 'Confirmed listing' : 'Pending listing'}
                                 </span>
@@ -396,6 +412,32 @@ export default function LandlordListingEdit({
                                 })}
                             </div>
                             <InputError message={form.errors.facilities} />
+                        </div>
+
+                        <div className="grid gap-3">
+                            <div>
+                                <Label>Volunteer Help Needed</Label>
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                    Select what kind of help you're looking for from potential tenants.
+                                </p>
+                            </div>
+
+                            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                {volunteerHelpOptions.map((option) => {
+                                    const checked = form.data.volunteer_help_needed.includes(option.value);
+
+                                    return (
+                                        <label
+                                            key={option.value}
+                                            className="flex items-center gap-3 rounded-[1rem] border border-sidebar-border/70 px-4 py-3 text-sm font-medium dark:border-sidebar-border"
+                                        >
+                                            <Checkbox checked={checked} onCheckedChange={(value) => toggleVolunteerHelp(option.value, value === true)} />
+                                            <span>{option.label}</span>
+                                        </label>
+                                    );
+                                })}
+                            </div>
+                            <InputError message={form.errors.volunteer_help_needed} />
                         </div>
 
                         <div className="grid gap-3">

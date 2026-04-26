@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'contact_email',
     'size_label',
     'facilities',
+    'volunteer_help_needed',
 ])]
 class Room extends Model
 {
@@ -54,6 +55,21 @@ class Room extends Model
         'smoke_alarm',
     ];
 
+    public const VOLUNTEER_HELP_OPTIONS = [
+        'help_with_shopping',
+        'help_with_cooking',
+        'help_with_appointments',
+        'help_with_garden',
+        'pet_care',
+        'tech_help',
+        'errands',
+        'moving_help',
+        'light_cleaning',
+        'car_rides',
+        'friendly_visits',
+        'other',
+    ];
+
     public const PRICE_PERIODS = [
         'night',
         'month',
@@ -68,6 +84,7 @@ class Room extends Model
     {
         return [
             'facilities' => 'array',
+            'volunteer_help_needed' => 'array',
             'price_per_night' => 'decimal:2',
         ];
     }
@@ -99,7 +116,7 @@ class Room extends Model
 
     public function pricePerNightLabel(): string
     {
-        return '€'.number_format((float) $this->price_per_night, 0).'/'.$this->pricePeriodLabel();
+        return '€' . number_format((float) $this->price_per_night, 0) . '/' . $this->pricePeriodLabel();
     }
 
     public function pricePeriodLabel(): string

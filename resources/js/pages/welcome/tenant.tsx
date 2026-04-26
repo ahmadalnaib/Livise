@@ -62,6 +62,7 @@ type ExistingListing = {
     size_label: string | null;
     contact_email: string | null;
     facilities: string[];
+    volunteer_help_needed: string[];
     image_count: number;
 };
 
@@ -73,6 +74,7 @@ type LandlordProps = {
     pricePeriodOptions?: LandlordOption[];
     listingTypeOptions?: LandlordOption[];
     facilityOptions?: LandlordOption[];
+    volunteerHelpOptions?: LandlordOption[];
     existingListings?: ExistingListing[];
 };
 
@@ -94,6 +96,7 @@ type LandlordListingForm = {
     listing_type: string;
     size_label: string;
     facilities: string[];
+    volunteer_help_needed: string[];
     photos: File[];
 };
 
@@ -110,6 +113,7 @@ export default function TenantWelcome({
     pricePeriodOptions = [],
     listingTypeOptions = [],
     facilityOptions = [],
+    volunteerHelpOptions = [],
     existingListings = [],
 }: LandlordProps) {
     const { auth } = usePage<PageProps>().props;
@@ -126,6 +130,7 @@ export default function TenantWelcome({
             pricePeriodOptions={pricePeriodOptions}
             listingTypeOptions={listingTypeOptions}
             facilityOptions={facilityOptions}
+            volunteerHelpOptions={volunteerHelpOptions}
             existingListings={existingListings}
         />
     );
@@ -315,6 +320,7 @@ function TenantWorkspace({
     pricePeriodOptions,
     listingTypeOptions,
     facilityOptions,
+    volunteerHelpOptions,
     existingListings,
 }: {
     authUser: LandlordUser;
@@ -323,6 +329,7 @@ function TenantWorkspace({
     pricePeriodOptions: LandlordOption[];
     listingTypeOptions: LandlordOption[];
     facilityOptions: LandlordOption[];
+    volunteerHelpOptions: LandlordOption[];
     existingListings: ExistingListing[];
 }) {
     const [isFormOpen, setIsFormOpen] = useState(showCreateListing);
@@ -347,6 +354,7 @@ function TenantWorkspace({
         listing_type: '',
         size_label: '',
         facilities: [],
+        volunteer_help_needed: [],
         photos: [],
     });
 
@@ -440,6 +448,18 @@ function TenantWorkspace({
         form.setData(
             'facilities',
             form.data.facilities.filter((facility) => facility !== optionValue),
+        );
+    }
+
+    function toggleVolunteerHelp(optionValue: string, checked: boolean): void {
+        if (checked) {
+            form.setData('volunteer_help_needed', [...form.data.volunteer_help_needed, optionValue]);
+            return;
+        }
+
+        form.setData(
+            'volunteer_help_needed',
+            form.data.volunteer_help_needed.filter((help) => help !== optionValue),
         );
     }
 
@@ -813,6 +833,32 @@ function TenantWorkspace({
                                             })}
                                         </div>
                                         <InputError message={form.errors.facilities} />
+                                    </div>
+
+                                    <div className="grid gap-3">
+                                        <div>
+                                            <Label>Volunteer Help Needed</Label>
+                                            <p className="mt-1 text-sm text-stone-600 dark:text-stone-300">
+                                                Select what kind of help you're looking for from potential tenants.
+                                            </p>
+                                        </div>
+
+                                        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                            {volunteerHelpOptions.map((option) => {
+                                                const checked = form.data.volunteer_help_needed.includes(option.value);
+
+                                                return (
+                                                    <label
+                                                        key={option.value}
+                                                        className="flex items-center gap-3 rounded-[1rem] border border-black/8 bg-stone-50/80 px-4 py-3 text-sm font-medium dark:border-white/10 dark:bg-[#132031]"
+                                                    >
+                                                        <Checkbox checked={checked} onCheckedChange={(value) => toggleVolunteerHelp(option.value, value === true)} />
+                                                        <span>{option.label}</span>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
+                                        <InputError message={form.errors.volunteer_help_needed} />
                                     </div>
 
                                     <div className="grid gap-3">

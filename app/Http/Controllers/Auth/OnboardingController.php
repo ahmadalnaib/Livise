@@ -18,7 +18,7 @@ class OnboardingController extends Controller
         $user = $request->user();
 
         // If user already has profile info, skip onboarding
-        if ($user->languages || $user->skills || $user->hobbies || $user->bio) {
+        if ($user->languages || $user->skills || $user->hobbies || $user->volunteer || $user->bio) {
             return redirect()->intended('/dashboard');
         }
 
@@ -26,6 +26,7 @@ class OnboardingController extends Controller
             'languages' => is_array($user->languages) ? $user->languages : [],
             'skills' => is_array($user->skills) ? $user->skills : [],
             'hobbies' => is_array($user->hobbies) ? $user->hobbies : [],
+            'volunteer' => is_array($user->volunteer) ? $user->volunteer : [],
             'bio' => $user->bio,
         ]);
     }
@@ -42,6 +43,8 @@ class OnboardingController extends Controller
             'skills.*' => ['string', 'max:100'],
             'hobbies' => ['nullable', 'array'],
             'hobbies.*' => ['string', 'max:100'],
+            'volunteer' => ['nullable', 'array'],
+            'volunteer.*' => ['string', 'max:100'],
             'bio' => ['nullable', 'string', 'max:1000'],
         ]);
 

@@ -40,6 +40,8 @@ class UpdateLandlordListingRequest extends FormRequest
             'size_label' => ['required', 'string', 'max:255'],
             'facilities' => ['nullable', 'array'],
             'facilities.*' => ['string', Rule::in(Room::FACILITIES)],
+            'volunteer_help_needed' => ['nullable', 'array'],
+            'volunteer_help_needed.*' => ['string', Rule::in(Room::VOLUNTEER_HELP_OPTIONS)],
             'photos' => ['nullable', 'array', 'max:10'],
             'photos.*' => ['required', File::image()->max('5mb')],
         ];

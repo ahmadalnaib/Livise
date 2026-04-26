@@ -33,11 +33,12 @@ class LandlordWelcomeController extends Controller
                 'pricePeriodOptions' => LandlordListingOptions::pricePeriodOptions(),
                 'listingTypeOptions' => LandlordListingOptions::listingTypeOptions(),
                 'facilityOptions' => LandlordListingOptions::facilityOptions(),
+                'volunteerHelpOptions' => LandlordListingOptions::volunteerHelpOptions(),
                 'existingListings' => $user->rooms()
                     ->with(['city', 'images'])
                     ->latest()
                     ->get()
-                    ->map(fn (Room $room): array => [
+                    ->map(fn(Room $room): array => [
                         'id' => $room->id,
                         'status' => $room->status,
                         'title' => $room->title,
@@ -50,6 +51,7 @@ class LandlordWelcomeController extends Controller
                         'size_label' => $room->size_label,
                         'contact_email' => $room->contact_email,
                         'facilities' => is_array($room->facilities) ? $room->facilities : [],
+                        'volunteer_help_needed' => is_array($room->volunteer_help_needed) ? $room->volunteer_help_needed : [],
                         'image_count' => $room->images->count(),
                     ])
                     ->values()

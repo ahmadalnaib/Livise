@@ -37,6 +37,7 @@ class LandlordListingController extends Controller
             'contact_email' => $landlord->email,
             'size_label' => $validated['size_label'],
             'facilities' => array_values($validated['facilities'] ?? []),
+            'volunteer_help_needed' => array_values($validated['volunteer_help_needed'] ?? []),
         ]);
 
         foreach ($request->file('photos', []) as $index => $photo) {
@@ -63,6 +64,7 @@ class LandlordListingController extends Controller
             'pricePeriodOptions' => LandlordListingOptions::pricePeriodOptions(),
             'listingTypeOptions' => LandlordListingOptions::listingTypeOptions(),
             'facilityOptions' => LandlordListingOptions::facilityOptions(),
+            'volunteerHelpOptions' => LandlordListingOptions::volunteerHelpOptions(),
         ]);
     }
 
@@ -163,6 +165,7 @@ class LandlordListingController extends Controller
             'listing_type' => $room->listing_type,
             'size_label' => $room->size_label,
             'facilities' => is_array($room->facilities) ? $room->facilities : [],
+            'volunteer_help_needed' => is_array($room->volunteer_help_needed) ? $room->volunteer_help_needed : [],
             'images' => $room->images->map(fn($image): array => [
                 'id' => $image->id,
                 'url' => asset('storage/' . $image->path),
