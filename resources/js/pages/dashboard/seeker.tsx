@@ -18,6 +18,8 @@ type RoomCard = {
     image: string;
     description: string;
     ownerName: string;
+    volunteerHelpNeeded: string[];
+    matchPercentage: number;
 };
 
 const createRoomIcon = (imageUrl: string) =>
@@ -582,9 +584,22 @@ export default function SeekerDashboard() {
                                                             </p>
                                                             <h3 className="text-base font-semibold">{room.title}</h3>
                                                         </div>
-                                                        <p className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-                                                            {room.pricePerNight}
-                                                        </p>
+                                                        <div className="flex flex-col items-end gap-1">
+                                                            <p className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                                                                {room.pricePerNight}
+                                                            </p>
+                                                            {room.matchPercentage !== undefined && (
+                                                                <p className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                                                                    room.matchPercentage >= 80
+                                                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                                        : room.matchPercentage >= 50
+                                                                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                                                                        : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                                                }`}>
+                                                                    {room.matchPercentage}% match
+                                                                </p>
+                                                            )}
+                                                        </div>
                                                     </div>
 
                                                     <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
@@ -605,6 +620,29 @@ export default function SeekerDashboard() {
                                                             </span>
                                                         ))}
                                                     </div>
+
+                                                    {room.volunteerHelpNeeded && room.volunteerHelpNeeded.length > 0 && (
+                                                        <div className="space-y-1.5">
+                                                            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                                                Help needed
+                                                            </p>
+                                                            <div className="flex flex-wrap gap-1.5">
+                                                                {room.volunteerHelpNeeded.slice(0, 4).map((help) => (
+                                                                    <span
+                                                                        key={help}
+                                                                        className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700 dark:bg-violet-900/30 dark:text-violet-400"
+                                                                    >
+                                                                        {help.replace(/_/g, ' ').replace(/^help with /i, '')}
+                                                                    </span>
+                                                                ))}
+                                                                {room.volunteerHelpNeeded.length > 4 && (
+                                                                    <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700 dark:bg-violet-900/30 dark:text-violet-400">
+                                                                        +{room.volunteerHelpNeeded.length - 4} more
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
 
                                                     <div className="grid gap-2 pt-1 sm:grid-cols-2">
                                                         <Link

@@ -7,6 +7,7 @@ use App\Models\BookingRequest;
 use App\Models\Rating;
 use App\Models\Rental;
 use App\Models\Room;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -61,6 +62,8 @@ class SeekerRoomController extends Controller
                 'sizeLabel' => (string) $room->size_label,
                 'listingType' => (string) $room->listing_type,
                 'facilities' => is_array($room->facilities) ? $room->facilities : [],
+                'volunteerHelpNeeded' => is_array($room->volunteer_help_needed) ? $room->volunteer_help_needed : [],
+                'matchPercentage' => $this->calculateMatchPercentage($request->user(), $room),
                 'ownerName' => (string) $room->owner?->name,
                 'ownerId' => $room->owner_id,
                 'pricePerNight' => $room->pricePerNightLabel(),
@@ -157,5 +160,39 @@ class SeekerRoomController extends Controller
         ]);
 
         return to_route('dashboard.tenant.rooms.show', $room);
+    }
+
+    /**
+     * Calculate match percentage between user volunteer preferences and room requirements.
+     *
+     * @param  User  $user
+     * @param  Room  $room
+     */
+    private function calculateMatchPercentage($user, $room): int
+    {
+        $userVolunteer = is_array($user->volunteer) ? $user->volunteer : [];
+        $roomVolunteerHelp = is_array($room->volunteer_help_needed) ? $room->volunteer_help_needed : [];
+
+        // If room has no volunteer requirements, return 100% (no matching needed)
+        if (empty($roomVolunteerHelp)) {
+            return 100;
+        }
+
+        // If user has no volunteer preferences but room requires help, return 0%
+        if (empty($userVolunteer)) {
+            return 0;
+        }
+
+        // Normalize strings for comparison (convert to lowercase, replace spaces with underscores)
+        $normalize = fn (string $s): string => strtolower(str_replace(' ', '_', $s));
+
+        $normalizedUser = array_map($normalize, $userVolunteer);
+        $normalizedRoom = array_map($normalize, $roomVolunteerHelp);
+
+        // Count matches
+        $matches = count(array_intersect($normalizedUser, $normalizedRoom));
+
+        // Calculate percentage
+        return (int) round(($matches / count($roomVolunteerHelp)) * 100);
     }
 }

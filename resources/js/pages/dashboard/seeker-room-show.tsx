@@ -47,6 +47,8 @@ type RoomDetails = {
     sizeLabel: string;
     listingType: string;
     facilities: string[];
+    volunteerHelpNeeded: string[];
+    matchPercentage: number;
     ownerName: string;
     ownerId: number;
     pricePerNight: string;
@@ -230,6 +232,53 @@ export default function SeekerRoomShow() {
                                                     >
                                                         <Wifi className="size-3" />
                                                         {facilityLabels[facility] || facility}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Match Percentage */}
+                                    {room.matchPercentage !== undefined && room.matchPercentage < 100 && (
+                                        <div className="mt-5 border-t border-sidebar-border/70 pt-5 dark:border-sidebar-border">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                                                    room.matchPercentage >= 80
+                                                        ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                                                        : room.matchPercentage >= 50
+                                                        ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
+                                                        : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                                                }`}>
+                                                    <span className="text-sm font-bold">{room.matchPercentage}%</span>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium">Volunteer Match</p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {room.matchPercentage >= 80
+                                                            ? 'Great match! Your help preferences align well.'
+                                                            : room.matchPercentage >= 50
+                                                            ? 'Partial match with your volunteer preferences.'
+                                                            : 'Low match - different help preferences.'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Volunteer Help Needed */}
+                                    {room.volunteerHelpNeeded && room.volunteerHelpNeeded.length > 0 && (
+                                        <div className="mt-5 border-t border-sidebar-border/70 pt-5 dark:border-sidebar-border">
+                                            <p className="text-sm font-medium">Help Needed</p>
+                                            <p className="text-xs text-muted-foreground mb-3">
+                                                The landlord is looking for help with:
+                                            </p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {room.volunteerHelpNeeded.map((help) => (
+                                                    <span
+                                                        key={help}
+                                                        className="inline-flex items-center gap-1.5 rounded-full bg-violet-100 px-3 py-1.5 text-xs font-medium text-violet-700 dark:bg-violet-900/30 dark:text-violet-400"
+                                                    >
+                                                        {help.replace(/_/g, ' ').replace(/^help with /i, '')}
                                                     </span>
                                                 ))}
                                             </div>

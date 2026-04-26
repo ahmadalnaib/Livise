@@ -24,7 +24,7 @@ class SeekerDashboardController extends Controller
             ->get();
 
         $roomCards = $rooms
-            ->map(fn(Room $room): array => $this->roomCard($room))
+            ->map(fn (Room $room): array => $this->roomCard($room))
             ->all();
         $availableRoomIds = $rooms->modelKeys();
         $likedRoomIds = collect($session->liked_room_ids ?? [])->intersect($availableRoomIds)->values()->all();
@@ -40,7 +40,7 @@ class SeekerDashboardController extends Controller
                 'questionnaireCompleted' => $session->questionnaire_completed,
             ],
             'favoriteRooms' => collect($roomCards)
-                ->filter(fn(array $room): bool => in_array($room['id'], $likedRoomIds, true))
+                ->filter(fn (array $room): bool => in_array($room['id'], $likedRoomIds, true))
                 ->values()
                 ->all(),
         ]);
@@ -53,8 +53,8 @@ class SeekerDashboardController extends Controller
             ->with(['room.city:id,name', 'room.owner:id,name'])
             ->latest('id')
             ->get()
-            ->filter(fn($rental): bool => $rental->room !== null)
-            ->map(fn($rental): array => [
+            ->filter(fn ($rental): bool => $rental->room !== null)
+            ->map(fn ($rental): array => [
                 ...$this->roomCard($rental->room),
                 'rentalId' => $rental->id,
                 'startsAt' => $rental->starts_at->toDateString(),
@@ -84,7 +84,7 @@ class SeekerDashboardController extends Controller
             ->latest()
             ->take(10)
             ->get()
-            ->map(fn(Rating $rating): array => [
+            ->map(fn (Rating $rating): array => [
                 'id' => $rating->id,
                 'rater_name' => $rating->rater->name,
                 'rating' => $rating->rating,
@@ -135,10 +135,10 @@ class SeekerDashboardController extends Controller
 
         if ($validated['direction'] === 'right') {
             $likedRoomIds = $likedRoomIds->push($validated['roomId'])->unique()->values();
-            $passedRoomIds = $passedRoomIds->reject(fn(int $roomId): bool => $roomId === $validated['roomId'])->values();
+            $passedRoomIds = $passedRoomIds->reject(fn (int $roomId): bool => $roomId === $validated['roomId'])->values();
         } else {
             $passedRoomIds = $passedRoomIds->push($validated['roomId'])->unique()->values();
-            $likedRoomIds = $likedRoomIds->reject(fn(int $roomId): bool => $roomId === $validated['roomId'])->values();
+            $likedRoomIds = $likedRoomIds->reject(fn (int $roomId): bool => $roomId === $validated['roomId'])->values();
         }
 
         $session->update([
@@ -181,10 +181,17 @@ class SeekerDashboardController extends Controller
     }
 
     /**
-     * @return array{id: int, title: string, city: string, pricePerNight: string, pricePerNightValue: float, size: string, tags: list<string>, image: string, description: string, ownerName: string}
+     * @return array{id: int, title: string, city: string, pricePerNight: string, pricePerNightValue: float, size: string, tags: list<string>, image: string, description: string, ownerName: string, volunteerHelpNeeded: array<string>, matchPercentage: int}
      */
     private function roomCard(Room $room): array
     {
+        $user = request()->user();
+        $userVolunteer = is_array($user->volunteer) ? $user->volunteer : [];
+        $roomVolunteerHelp = is_array($room->volunteer_help_needed) ? $room->volunteer_help_needed : [];
+
+        // Calculate match percentage
+        $matchPercentage = $this->calculateMatchPercentage($userVolunteer, $roomVolunteerHelp);
+
         return [
             'id' => $room->id,
             'title' => $room->title,
@@ -196,7 +203,40 @@ class SeekerDashboardController extends Controller
             'image' => $room->catalogImage(),
             'description' => (string) $room->description,
             'ownerName' => (string) $room->owner?->name,
+            'volunteerHelpNeeded' => $roomVolunteerHelp,
+            'matchPercentage' => $matchPercentage,
         ];
+    }
+
+    /**
+     * Calculate match percentage between user volunteer preferences and room requirements.
+     *
+     * @param  array<string>  $userVolunteer
+     * @param  array<string>  $roomVolunteerHelp
+     */
+    private function calculateMatchPercentage(array $userVolunteer, array $roomVolunteerHelp): int
+    {
+        // If room has no volunteer requirements, return 100% (no matching needed)
+        if (empty($roomVolunteerHelp)) {
+            return 100;
+        }
+
+        // If user has no volunteer preferences but room requires help, return 0%
+        if (empty($userVolunteer)) {
+            return 0;
+        }
+
+        // Normalize strings for comparison (convert to lowercase, replace spaces with underscores)
+        $normalize = fn (string $s): string => strtolower(str_replace(' ', '_', $s));
+
+        $normalizedUser = array_map($normalize, $userVolunteer);
+        $normalizedRoom = array_map($normalize, $roomVolunteerHelp);
+
+        // Count matches
+        $matches = count(array_intersect($normalizedUser, $normalizedRoom));
+
+        // Calculate percentage
+        return (int) round(($matches / count($roomVolunteerHelp)) * 100);
     }
 
     private function roomSize(Room $room): string
