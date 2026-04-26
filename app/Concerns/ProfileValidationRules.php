@@ -18,6 +18,13 @@ trait ProfileValidationRules
         return [
             'name' => $this->nameRules(),
             'email' => $this->emailRules($userId),
+            'languages' => ['nullable', 'array'],
+            'languages.*' => ['string', 'max:100'],
+            'skills' => ['nullable', 'array'],
+            'skills.*' => ['string', 'max:100'],
+            'hobbies' => ['nullable', 'array'],
+            'hobbies.*' => ['string', 'max:100'],
+            'bio' => ['nullable', 'string', 'max:1000'],
         ];
     }
 

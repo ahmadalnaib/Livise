@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\OnboardingController;
 use App\Http\Controllers\Dashboard\AdminBookingController;
 use App\Http\Controllers\Dashboard\AdminDashboardController;
 use App\Http\Controllers\Dashboard\LandlordDashboardController;
@@ -19,13 +20,19 @@ Route::inertia('/', 'welcome', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
 
+// Onboarding routes (after registration)
+Route::middleware('auth')->group(function () {
+    Route::get('/onboarding', [OnboardingController::class, 'show'])->name('onboarding');
+    Route::post('/onboarding', [OnboardingController::class, 'store'])->name('onboarding.store');
+});
+
 Route::get('/welcome/tenant', function (Request $request) {
     $rooms = Room::query()
         ->with('city:id,name')
         ->latest('id')
         ->take(6)
         ->get()
-        ->map(fn(Room $room): array => [
+        ->map(fn (Room $room): array => [
             'id' => $room->id,
             'title' => $room->title,
             'city' => (string) $room->city?->name,
@@ -155,4 +162,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('landlord.listings.update');
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

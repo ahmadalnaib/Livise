@@ -27,7 +27,7 @@ class ProfileController extends Controller
             ->with('rater')
             ->latest()
             ->get()
-            ->map(fn(Rating $rating): array => [
+            ->map(fn (Rating $rating): array => [
                 'id' => $rating->id,
                 'rater_name' => $rating->rater->name,
                 'rating' => $rating->rating,
@@ -41,7 +41,7 @@ class ProfileController extends Controller
             ->with('rated')
             ->latest()
             ->get()
-            ->map(fn(Rating $rating): array => [
+            ->map(fn (Rating $rating): array => [
                 'id' => $rating->id,
                 'rated_name' => $rating->rated->name,
                 'rating' => $rating->rating,
@@ -57,6 +57,10 @@ class ProfileController extends Controller
             'totalRatings' => $user->ratingsReceived()->count(),
             'ratingsReceived' => $ratingsReceived,
             'ratingsGiven' => $ratingsGiven,
+            'languages' => is_array($user->languages) ? $user->languages : [],
+            'skills' => is_array($user->skills) ? $user->skills : [],
+            'hobbies' => is_array($user->hobbies) ? $user->hobbies : [],
+            'bio' => $user->bio,
         ]);
     }
 
