@@ -23,6 +23,7 @@ type Rating = {
     rater_name: string;
     rating: number;
     comment: string | null;
+    qualities: string[];
     type: string;
     created_at: string;
 };
@@ -46,10 +47,11 @@ type Props = {
     };
     listings: Listing[];
     ratingsReceived?: Rating[];
+    tenantRatingQualities: string[];
     recentTenants?: Tenant[];
 };
 
-export default function TenantDashboard({ activeFilter, stats, listings, ratingsReceived = [], recentTenants = [] }: Props) {
+export default function TenantDashboard({ activeFilter, stats, listings, ratingsReceived = [], tenantRatingQualities, recentTenants = [] }: Props) {
     const [showRatingModal, setShowRatingModal] = useState(false);
     const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
     const [showRatingViewModal, setShowRatingViewModal] = useState(false);
@@ -57,12 +59,33 @@ export default function TenantDashboard({ activeFilter, stats, listings, ratings
         rated_id: 0,
         rating: 5,
         comment: '',
+        qualities: [] as string[],
         type: 'landlord_to_tenant' as const,
     });
 
+    const formatQualityLabel = (quality: string) => quality.replaceAll('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+
+    const closeRatingModal = () => {
+        setShowRatingModal(false);
+        setSelectedTenant(null);
+        ratingForm.reset();
+        ratingForm.clearErrors();
+    };
+
+    const toggleQuality = (quality: string) => {
+        const nextQualities = ratingForm.data.qualities.includes(quality)
+            ? ratingForm.data.qualities.filter((item) => item !== quality)
+            : [...ratingForm.data.qualities, quality];
+
+        ratingForm.setData('qualities', nextQualities);
+    };
+
     const handleOpenRatingModal = (tenant: Tenant) => {
         setSelectedTenant(tenant);
+        ratingForm.reset();
+        ratingForm.clearErrors();
         ratingForm.setData('rated_id', tenant.id);
+        ratingForm.setData('type', 'landlord_to_tenant');
         setShowRatingModal(true);
     };
 
@@ -70,9 +93,7 @@ export default function TenantDashboard({ activeFilter, stats, listings, ratings
         e.preventDefault();
         ratingForm.post('/dashboard/ratings', {
             onSuccess: () => {
-                setShowRatingModal(false);
-                setSelectedTenant(null);
-                ratingForm.reset();
+                closeRatingModal();
             },
         });
     };
@@ -102,10 +123,10 @@ export default function TenantDashboard({ activeFilter, stats, listings, ratings
             {/* Rating Modal for Tenants */}
             {showRatingModal && selectedTenant && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowRatingModal(false)} />
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeRatingModal} />
                     <div className="relative z-10 w-full max-w-md rounded-2xl bg-white p-5 dark:bg-stone-900 shadow-2xl">
                         <button
-                            onClick={() => setShowRatingModal(false)}
+                            onClick={closeRatingModal}
                             className="absolute right-4 top-4 rounded-full p-1 text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800"
                         >
                             <X className="size-5" />
@@ -130,6 +151,28 @@ export default function TenantDashboard({ activeFilter, stats, listings, ratings
                                             />
                                         </button>
                                     ))}
+                                </div>
+                            </div>
+                            <div className="mb-4">
+                                <label className="mb-2 block text-sm font-medium">Highlights</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {tenantRatingQualities.map((quality) => {
+                                        const isSelected = ratingForm.data.qualities.includes(quality);
+
+                                        return (
+                                            <button
+                                                key={quality}
+                                                type="button"
+                                                onClick={() => toggleQuality(quality)}
+                                                className={`rounded-full border px-3 py-1.5 text-sm transition ${isSelected
+                                                    ? 'border-green-600 bg-green-50 text-green-700 dark:border-green-500 dark:bg-green-950/40 dark:text-green-300'
+                                                    : 'border-stone-300 text-stone-600 hover:border-stone-400 dark:border-stone-700 dark:text-stone-300 dark:hover:border-stone-500'
+                                                    }`}
+                                            >
+                                                {formatQualityLabel(quality)}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                             <div className="mb-4">
@@ -186,6 +229,15 @@ export default function TenantDashboard({ activeFilter, stats, listings, ratings
                                                 ))}
                                             </div>
                                         </div>
+                                        {rating.qualities.length > 0 && (
+                                            <div className="mt-2 flex flex-wrap gap-2">
+                                                {rating.qualities.map((quality) => (
+                                                    <span key={quality} className="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-600 dark:bg-stone-800 dark:text-stone-300">
+                                                        {formatQualityLabel(quality)}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
                                         {rating.comment && <p className="mt-2 text-sm text-muted-foreground">{rating.comment}</p>}
                                     </div>
                                 ))}

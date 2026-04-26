@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\City;
+use App\Models\Rating;
 use App\Models\Room;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -54,6 +55,7 @@ test('landlord can access only landlord dashboard', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->component('dashboard/tenant')
             ->where('activeFilter', 'all')
+            ->where('tenantRatingQualities', Rating::TENANT_QUALITIES)
             ->where('stats.publishedRooms', 1)
             ->where('stats.pendingListings', 1)
             ->where('stats.confirmedListings', 0)

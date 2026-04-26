@@ -17,6 +17,7 @@ type Rating = {
     rated_name?: string;
     rating: number;
     comment: string | null;
+    qualities?: string[];
     type: string;
     created_at: string;
 };
@@ -48,6 +49,7 @@ export default function Profile({
     const [languageInput, setLanguageInput] = useState(languages.join(', '));
     const [skillsInput, setSkillsInput] = useState(skills.join(', '));
     const [hobbiesInput, setHobbiesInput] = useState(hobbies.join(', '));
+    const formatQualityLabel = (quality: string) => quality.replaceAll('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 
     return (
         <>
@@ -244,6 +246,15 @@ export default function Profile({
                                             ))}
                                         </div>
                                     </div>
+                                    {rating.qualities && rating.qualities.length > 0 && (
+                                        <div className="mt-2 flex flex-wrap gap-2">
+                                            {rating.qualities.map((quality) => (
+                                                <span key={quality} className="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-600 dark:bg-stone-800 dark:text-stone-300">
+                                                    {formatQualityLabel(quality)}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                     {rating.comment && (
                                         <p className="mt-2 text-sm text-muted-foreground">
                                             {rating.comment}
@@ -279,6 +290,15 @@ export default function Profile({
                                             ))}
                                         </div>
                                     </div>
+                                    {rating.qualities && rating.qualities.length > 0 && (
+                                        <div className="mt-2 flex flex-wrap gap-2">
+                                            {rating.qualities.map((quality) => (
+                                                <span key={quality} className="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-600 dark:bg-stone-800 dark:text-stone-300">
+                                                    {formatQualityLabel(quality)}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                     {rating.comment && (
                                         <p className="mt-2 text-sm text-muted-foreground">
                                             {rating.comment}

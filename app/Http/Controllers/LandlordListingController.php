@@ -166,17 +166,10 @@ class LandlordListingController extends Controller
             'size_label' => $room->size_label,
             'facilities' => is_array($room->facilities) ? $room->facilities : [],
             'volunteer_help_needed' => is_array($room->volunteer_help_needed) ? $room->volunteer_help_needed : [],
-<<<<<<< HEAD
             'images' => [[
                 'id' => 0,
                 'url' => $room->defaultListingImageUrl(),
             ]],
-=======
-            'images' => $room->images->map(fn($image): array => [
-                'id' => $image->id,
-                'url' => asset('storage/' . $image->path),
-            ])->values()->all(),
->>>>>>> 83cb78c (fix: correct volunteer_help_needed assignment and clean up image handling in listingPayload method)
         ];
     }
 }

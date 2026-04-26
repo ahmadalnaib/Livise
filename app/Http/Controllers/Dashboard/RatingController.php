@@ -7,6 +7,7 @@ use App\Models\Rating;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class RatingController extends Controller
 {
@@ -16,6 +17,8 @@ class RatingController extends Controller
             'rated_id' => 'required|exists:users,id',
             'rating' => 'required|integer|between:1,5',
             'comment' => 'nullable|string|max:1000',
+            'qualities' => 'nullable|array',
+            'qualities.*' => ['string', Rule::in(Rating::TENANT_QUALITIES)],
             'type' => 'required|in:tenant_to_landlord,landlord_to_tenant',
         ]);
 
@@ -40,6 +43,7 @@ class RatingController extends Controller
             'rated_id' => $data['rated_id'],
             'rating' => $data['rating'],
             'comment' => $data['comment'] ?? null,
+            'qualities' => array_values($data['qualities'] ?? []),
             'type' => $data['type'],
         ]);
 

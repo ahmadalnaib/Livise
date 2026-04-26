@@ -23,6 +23,7 @@ type Rating = {
     rater_name: string;
     rating: number;
     comment: string | null;
+    qualities: string[];
     type: string;
     created_at: string;
 };
@@ -39,6 +40,7 @@ export default function SeekerRentedRoomsPage() {
     const [showRatingModal, setShowRatingModal] = useState(false);
     const [selectedLandlord, setSelectedLandlord] = useState<{ id: number; name: string } | null>(null);
     const [showRatingViewModal, setShowRatingViewModal] = useState(false);
+    const formatQualityLabel = (quality: string) => quality.replaceAll('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase());
     const ratingForm = useForm({
         rated_id: 0,
         rating: 5,
@@ -154,6 +156,15 @@ export default function SeekerRentedRoomsPage() {
                                                 ))}
                                             </div>
                                         </div>
+                                        {rating.qualities.length > 0 && (
+                                            <div className="mt-2 flex flex-wrap gap-2">
+                                                {rating.qualities.map((quality) => (
+                                                    <span key={quality} className="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-600 dark:bg-stone-800 dark:text-stone-300">
+                                                        {formatQualityLabel(quality)}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
                                         {rating.comment && <p className="mt-2 text-sm text-muted-foreground">{rating.comment}</p>}
                                     </div>
                                 ))}

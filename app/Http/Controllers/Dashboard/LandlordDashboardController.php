@@ -38,6 +38,7 @@ class LandlordDashboardController extends Controller
                 'rater_name' => $rating->rater->name,
                 'rating' => $rating->rating,
                 'comment' => $rating->comment,
+                'qualities' => is_array($rating->qualities) ? $rating->qualities : [],
                 'type' => $rating->type,
                 'created_at' => $rating->created_at->toISOString(),
             ]);
@@ -74,6 +75,7 @@ class LandlordDashboardController extends Controller
                 'totalRatings' => $landlord->ratingsReceived()->count(),
             ],
             'ratingsReceived' => $ratingsReceived,
+            'tenantRatingQualities' => Rating::TENANT_QUALITIES,
             'recentTenants' => $recentTenants,
             'listings' => $listings->map(fn (Room $room): array => [
                 'id' => $room->id,

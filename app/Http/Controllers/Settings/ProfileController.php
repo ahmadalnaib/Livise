@@ -27,11 +27,12 @@ class ProfileController extends Controller
             ->with('rater')
             ->latest()
             ->get()
-            ->map(fn(Rating $rating): array => [
+            ->map(fn (Rating $rating): array => [
                 'id' => $rating->id,
                 'rater_name' => $rating->rater->name,
                 'rating' => $rating->rating,
                 'comment' => $rating->comment,
+                'qualities' => is_array($rating->qualities) ? $rating->qualities : [],
                 'type' => $rating->type,
                 'created_at' => $rating->created_at->toISOString(),
             ]);
@@ -41,11 +42,12 @@ class ProfileController extends Controller
             ->with('rated')
             ->latest()
             ->get()
-            ->map(fn(Rating $rating): array => [
+            ->map(fn (Rating $rating): array => [
                 'id' => $rating->id,
                 'rated_name' => $rating->rated->name,
                 'rating' => $rating->rating,
                 'comment' => $rating->comment,
+                'qualities' => is_array($rating->qualities) ? $rating->qualities : [],
                 'type' => $rating->type,
                 'created_at' => $rating->created_at->toISOString(),
             ]);
