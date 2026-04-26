@@ -19,13 +19,14 @@ type RoomCard = {
     ownerName: string;
 };
 
-const mapIcon = L.divIcon({
-    html: `<div class="flex size-10 items-center justify-center rounded-full bg-primary shadow-lg"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>`,
-    className: '',
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
-    popupAnchor: [0, -40],
-});
+const createRoomIcon = (imageUrl: string) =>
+    L.divIcon({
+        html: `<img src="${imageUrl}" alt="Room" class="size-10 rounded-full border-2 border-white object-cover shadow-lg" />`,
+        className: '',
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+        popupAnchor: [0, -40],
+    });
 
 const germanMajorCities = [
     'Berlin',
@@ -535,7 +536,13 @@ export default function SeekerDashboard() {
                                         const coordinates = cityCoordinates[room.city.toLowerCase()];
 
                                         return (
-                                            <Marker key={room.id} position={coordinates} icon={mapIcon}>
+                                            <Marker key={room.id} position={coordinates} icon={L.divIcon({
+                                                html: `<img src="${room.image}" alt="${room.title}" class="h-10 w-10 rounded-full object-cover border-2 border-white shadow-lg" />`,
+                                                className: '',
+                                                iconSize: [40, 40],
+                                                iconAnchor: [20, 40],
+                                                popupAnchor: [0, -40],
+                                            })}>
                                                 <Popup>
                                                     <p className="font-semibold">{room.title}</p>
                                                     <p>{room.city}</p>
