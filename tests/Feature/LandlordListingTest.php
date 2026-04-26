@@ -110,7 +110,7 @@ test('landlord can view an existing listing in the view screen', function () {
             ->where('listing.status', 'pending')
             ->where('listing.title', $room->title)
             ->where('listing.price_period', 'month')
-            ->where('listing.images.0.url', asset('images/default-room.svg'))
+            ->where('listing.images.0.url', asset('images/default-room1.jpg'))
             ->where('listing.city', $room->city?->name),
         );
 });
@@ -136,7 +136,7 @@ test('landlord listing view always uses the shared default image', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('dashboard/landlord-listing-show')
-            ->where('listing.images.0.url', asset('images/default-room.svg')),
+            ->where('listing.images.0.url', asset('images/default-room1.jpg')),
         );
 });
 

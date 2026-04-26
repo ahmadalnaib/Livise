@@ -165,18 +165,11 @@ class LandlordListingController extends Controller
             'listing_type' => $room->listing_type,
             'size_label' => $room->size_label,
             'facilities' => is_array($room->facilities) ? $room->facilities : [],
-<<<<<<< HEAD
             'volunteer_help_needed' => is_array($room->volunteer_help_needed) ? $room->volunteer_help_needed : [],
-            'images' => $room->images->map(fn($image): array => [
-                'id' => $image->id,
-                'url' => asset('storage/' . $image->path),
-            ])->values()->all(),
-=======
             'images' => [[
                 'id' => 0,
                 'url' => $room->defaultListingImageUrl(),
             ]],
->>>>>>> 2b7e608 (Add image)
         ];
     }
 }

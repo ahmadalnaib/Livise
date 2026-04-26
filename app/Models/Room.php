@@ -157,7 +157,7 @@ class Room extends Model
 
     public function defaultListingImageUrl(): string
     {
-        return asset('images/default-room.svg');
+        return asset('images/default-room1.jpg');
     }
 
     public function primaryImageUrl(): string

@@ -61,7 +61,7 @@ test('landlord can access only landlord dashboard', function () {
             ->has('listings', 1)
             ->where('listings.0.title', 'Dashboard Listing')
             ->where('listings.0.status', 'pending')
-            ->where('listings.0.image', asset('images/default-room.svg'))
+            ->where('listings.0.image', asset('images/default-room1.jpg'))
             ->where('listings.0.price_period', 'month'),
         );
     $this->get(route('dashboard.admin'))->assertForbidden();
@@ -84,8 +84,8 @@ test('landlord dashboard listings fall back to a shared default image', function
         ->assertInertia(fn (Assert $page) => $page
             ->component('dashboard/tenant')
             ->has('listings', 2)
-            ->where('listings.0.image', asset('images/default-room.svg'))
-            ->where('listings.1.image', asset('images/default-room.svg')),
+            ->where('listings.0.image', asset('images/default-room1.jpg'))
+            ->where('listings.1.image', asset('images/default-room1.jpg')),
         );
 });
 
