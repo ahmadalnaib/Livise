@@ -1,11 +1,12 @@
 import { Head, useForm } from '@inertiajs/react';
-import { Languages, Sparkles, Heart, ArrowRight, Check } from 'lucide-react';
+import { Languages, Sparkles, Heart, ArrowRight, Check, HandHeart } from 'lucide-react';
 import { useState } from 'react';
 
 type OnboardingProps = {
     languages?: string[];
     skills?: string[];
     hobbies?: string[];
+    volunteer?: string[];
     bio?: string;
 };
 
@@ -27,32 +28,42 @@ const commonHobbies = [
     'Cycling', 'Swimming', 'Dancing', 'Skiing', 'Board games', 'Podcasts',
 ];
 
+const commonVolunteerOptions = [
+    'Help with shopping', 'Help with cooking', 'Help with appointments',
+    'Help with garden', 'Pet care', 'Tech help', 'Errands', 'Moving help',
+    'Light cleaning', 'Car rides', 'Friendly visits', 'Other'
+];
+
 export default function Onboarding({
     languages: initialLanguages = [],
     skills: initialSkills = [],
     hobbies: initialHobbies = [],
+    volunteer: initialVolunteer = [],
     bio = '',
 }: OnboardingProps) {
     const { data, setData, post, processing } = useForm({
         languages: initialLanguages,
         skills: initialSkills,
         hobbies: initialHobbies,
+        volunteer: initialVolunteer,
         bio: bio,
     });
 
     const [languageInput, setLanguageInput] = useState(initialLanguages.join(', '));
     const [skillsInput, setSkillsInput] = useState(initialSkills.join(', '));
     const [hobbiesInput, setHobbiesInput] = useState(initialHobbies.join(', '));
+    const [volunteerInput, setVolunteerInput] = useState(initialVolunteer.join(', '));
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setData('languages', languageInput.split(',').map((s) => s.trim()).filter(Boolean));
         setData('skills', skillsInput.split(',').map((s) => s.trim()).filter(Boolean));
         setData('hobbies', hobbiesInput.split(',').map((s) => s.trim()).filter(Boolean));
+        setData('volunteer', volunteerInput.split(',').map((s) => s.trim()).filter(Boolean));
         post('/onboarding');
     };
 
-    const toggleItem = (field: 'languages' | 'skills' | 'hobbies', item: string) => {
+    const toggleItem = (field: 'languages' | 'skills' | 'hobbies' | 'volunteer', item: string) => {
         const current = data[field] || [];
         const updated = current.includes(item)
             ? current.filter((i: string) => i !== item)
@@ -95,8 +106,8 @@ export default function Onboarding({
                                         type="button"
                                         onClick={() => toggleItem('languages', lang)}
                                         className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${(data.languages || []).includes(lang)
-                                                ? 'bg-primary text-white'
-                                                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                                            ? 'bg-primary text-white'
+                                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
                                             }`}
                                     >
                                         {(data.languages || []).includes(lang) && <Check className="size-3 inline mr-1" />}
@@ -133,8 +144,8 @@ export default function Onboarding({
                                         type="button"
                                         onClick={() => toggleItem('skills', skill)}
                                         className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${(data.skills || []).includes(skill)
-                                                ? 'bg-green-600 text-white'
-                                                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                                            ? 'bg-green-600 text-white'
+                                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
                                             }`}
                                     >
                                         {(data.skills || []).includes(skill) && <Check className="size-3 inline mr-1" />}
@@ -171,8 +182,8 @@ export default function Onboarding({
                                         type="button"
                                         onClick={() => toggleItem('hobbies', hobby)}
                                         className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${(data.hobbies || []).includes(hobby)
-                                                ? 'bg-amber-600 text-white'
-                                                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                                            ? 'bg-amber-600 text-white'
+                                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
                                             }`}
                                     >
                                         {(data.hobbies || []).includes(hobby) && <Check className="size-3 inline mr-1" />}
@@ -186,6 +197,44 @@ export default function Onboarding({
                                 value={hobbiesInput}
                                 onChange={(e) => setHobbiesInput(e.target.value)}
                                 placeholder="Or add other hobbies (comma separated)"
+                                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+                            />
+                        </div>
+
+                        {/* Volunteer */}
+                        <div className="rounded-2xl border border-sidebar-border/70 bg-white p-6 dark:border-sidebar-border dark:bg-sidebar">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100 dark:bg-violet-900/30">
+                                    <HandHeart className="size-5 text-violet-600 dark:text-violet-400" />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-semibold">Volunteer to help</h2>
+                                    <p className="text-sm text-muted-foreground">Boost your chances of getting the room</p>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2 mb-4">
+                                {commonVolunteerOptions.slice(0, 12).map((option) => (
+                                    <button
+                                        key={option}
+                                        type="button"
+                                        onClick={() => toggleItem('volunteer', option)}
+                                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${(data.volunteer || []).includes(option)
+                                            ? 'bg-violet-600 text-white'
+                                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                                            }`}
+                                    >
+                                        {(data.volunteer || []).includes(option) && <Check className="size-3 inline mr-1" />}
+                                        {option}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <input
+                                type="text"
+                                value={volunteerInput}
+                                onChange={(e) => setVolunteerInput(e.target.value)}
+                                placeholder="Or add other ways you can help (comma separated)"
                                 className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
                             />
                         </div>
