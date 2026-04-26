@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 # Livise - Rental Platform for elderly people and young students
-=======
-# Livise - Room Rental Platform
->>>>>>> 3d64f60 (Rebrand)
 
 A modern Laravel application for room rentals with landlord and tenant matching.
 
