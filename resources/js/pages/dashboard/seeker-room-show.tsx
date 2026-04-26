@@ -242,13 +242,12 @@ export default function SeekerRoomShow() {
                                     {room.matchPercentage !== undefined && room.matchPercentage < 100 && (
                                         <div className="mt-5 border-t border-sidebar-border/70 pt-5 dark:border-sidebar-border">
                                             <div className="flex items-center gap-3">
-                                                <div className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                                                    room.matchPercentage >= 80
+                                                <div className={`flex h-10 w-10 items-center justify-center rounded-full ${room.matchPercentage >= 80
                                                         ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
                                                         : room.matchPercentage >= 50
-                                                        ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
-                                                        : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
-                                                }`}>
+                                                            ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
+                                                            : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                                                    }`}>
                                                     <span className="text-sm font-bold">{room.matchPercentage}%</span>
                                                 </div>
                                                 <div>
@@ -257,8 +256,8 @@ export default function SeekerRoomShow() {
                                                         {room.matchPercentage >= 80
                                                             ? 'Great match! Your help preferences align well.'
                                                             : room.matchPercentage >= 50
-                                                            ? 'Partial match with your volunteer preferences.'
-                                                            : 'Low match - different help preferences.'}
+                                                                ? 'Partial match with your volunteer preferences.'
+                                                                : 'Low match - different help preferences.'}
                                                     </p>
                                                 </div>
                                             </div>

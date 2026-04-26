@@ -21,7 +21,7 @@ class SeekerRoomController extends Controller
         $room->load([
             'city:id,name',
             'owner:id,name',
-            'rentals' => fn ($query) => $query->with('renter:id,name')->orderBy('starts_at'),
+            'rentals' => fn($query) => $query->with('renter:id,name')->orderBy('starts_at'),
         ]);
 
         $currentUserRental = $room->rentals
@@ -41,7 +41,7 @@ class SeekerRoomController extends Controller
             ->latest()
             ->take(10)
             ->get()
-            ->map(fn (Rating $rating): array => [
+            ->map(fn(Rating $rating): array => [
                 'id' => $rating->id,
                 'rater_name' => $rating->rater->name,
                 'rating' => $rating->rating,
@@ -77,7 +77,7 @@ class SeekerRoomController extends Controller
             ],
             'ratingsReceived' => $ratingsReceived,
             'bookedRanges' => $room->rentals
-                ->map(fn (Rental $rental): array => [
+                ->map(fn(Rental $rental): array => [
                     'id' => $rental->id,
                     'startsAt' => $rental->starts_at->toDateString(),
                     'endsAt' => $rental->ends_at->toDateString(),
@@ -184,7 +184,7 @@ class SeekerRoomController extends Controller
         }
 
         // Normalize strings for comparison (convert to lowercase, replace spaces with underscores)
-        $normalize = fn (string $s): string => strtolower(str_replace(' ', '_', $s));
+        $normalize = fn(string $s): string => strtolower(str_replace(' ', '_', $s));
 
         $normalizedUser = array_map($normalize, $userVolunteer);
         $normalizedRoom = array_map($normalize, $roomVolunteerHelp);
