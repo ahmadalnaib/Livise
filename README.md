@@ -1,4 +1,4 @@
-# Livise - Rental Platform for elders and young students
+# Livise - Rental Platform for elderly people and young students
 
 A modern Laravel application for room rentals with landlord and tenant matching.
 
